@@ -3,91 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist v14 // Bold & Balanced</title>
+    <title>Minimalist OS v15 // Cinema Pro</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@500&display=swap');
 
         :root {
-            --bg: #050505; /* 深邃黑 */
-            --text-primary: #FFFFFF; /* 纯白 */
-            --text-secondary: #A0A0A0; /* 中灰，确保可读性 */
-            --text-dim: #505050; /* 暗灰，用于占位符 */
-            --border: rgba(255, 255, 255, 0.15);
-            --transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            --bg: #000;
+            --text-p: #fff;
+            --text-s: #888;
+            --accent: #fff;
+            --border: rgba(255, 255, 255, 0.12);
+            --curve: cubic-bezier(0.05, 0.7, 0.1, 1);
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-        body, html { 
-            margin: 0; padding: 0; height: 100%; 
-            background: var(--bg); color: var(--text-secondary); 
-            font-family: 'Inter', sans-serif; overflow: hidden; 
-        }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text-p); font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* 顶部与底部全局标签：字重增加，颜色加亮 */
-        #ui-top-left { position: fixed; top: 40px; left: 40px; font-size: 13px; letter-spacing: 2px; z-index: 100; font-weight: 700; color: var(--text-secondary); }
-        #back-btn { cursor: pointer; color: var(--text-primary); transition: var(--transition); display: none; border-bottom: 2px solid transparent; }
-        #back-btn:hover { border-bottom-color: var(--text-primary); }
+        /* UI HUD */
+        #hud-top { position: fixed; top: 40px; left: 40px; right: 40px; display: flex; justify-content: space-between; z-index: 100; font-size: 12px; letter-spacing: 2px; font-weight: 600; color: var(--text-s); }
+        #back-btn { cursor: pointer; color: var(--text-p); opacity: 0; visibility: hidden; transition: 0.4s var(--curve); border-bottom: 1px solid var(--text-p); }
+        #back-btn.show { opacity: 1; visibility: visible; }
+        #la-time { font-family: 'JetBrains Mono'; letter-spacing: 0; }
+
+        /* Animation */
+        .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.8s var(--curve); position: absolute; top: 0; left: 0; }
+        .hidden { opacity: 0; transform: translateY(30px); pointer-events: none; }
+        .container { width: 90%; max-width: 1100px; height: 80vh; display: flex; flex-direction: column; }
+
+        /* Typography */
+        .hero { font-size: 7rem; font-weight: 900; letter-spacing: -5px; line-height: 0.85; margin: 0; }
+        .sub { font-size: 14px; letter-spacing: 6px; text-transform: uppercase; color: var(--text-s); margin-bottom: 20px; font-weight: 600; }
         
-        #ui-bottom-left { position: fixed; bottom: 40px; left: 40px; font-size: 12px; font-family: 'JetBrains Mono'; color: var(--text-secondary); font-weight: 500; letter-spacing: 1px;}
+        /* Inputs & Buttons */
+        input#main-cmd { background: transparent; border: none; border-bottom: 2px solid var(--border); color: #fff; padding: 15px 0; font-size: 2rem; font-weight: 900; width: 400px; text-align: center; outline: none; transition: 0.6s var(--curve); }
+        input#main-cmd:focus { width: 550px; border-bottom-color: #fff; }
+        
+        button { background: transparent; border: 1px solid var(--border); color: #fff; padding: 10px 20px; font-size: 10px; font-weight: 600; letter-spacing: 2px; cursor: pointer; transition: 0.3s; margin: 5px; text-transform: uppercase; }
+        button:hover { background: #fff; color: #000; }
 
-        /* 核心框架 */
-        .screen { 
-            width: 100%; height: 100%; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; transition: var(--transition); 
-        }
-        .hidden { display: none !important; opacity: 0; }
-        .container { width: 85%; max-width: 1100px; height: 75vh; animation: fadeIn 0.8s ease-out; display: flex; flex-direction: column; }
+        /* Tools Layout */
+        .app-split { display: grid; grid-template-columns: 350px 1fr; gap: 60px; height: 100%; }
+        canvas { background: #050505; border: 1px solid var(--border); border-radius: 2px; cursor: crosshair; }
+        
+        /* Range Slider Styling */
+        input[type=range] { -webkit-appearance: none; background: transparent; width: 150px; }
+        input[type=range]::-webkit-slider-runnable-track { height: 2px; background: var(--border); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; background: #fff; margin-top: -5px; cursor: pointer; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* 输入框：加粗处理 */
-        input { 
-            background: transparent; border: none; border-bottom: 2px solid var(--border); 
-            color: var(--text-primary); padding: 15px 0; outline: none; width: 320px; 
-            text-align: center; font-size: 1.5rem; font-weight: 700; transition: var(--transition);
-        }
-        input:focus { width: 450px; border-bottom-color: var(--text-primary); }
-        input::placeholder { color: var(--text-dim); letter-spacing: 1px; font-weight: 500; }
-
-        /* 按钮：强化视觉感 */
-        button { 
-            background: transparent; border: 2px solid var(--border); color: var(--text-primary); 
-            padding: 12px 24px; font-size: 11px; letter-spacing: 2px; transition: var(--transition); 
-            margin: 5px; font-weight: 700; text-transform: uppercase; cursor: pointer;
-        }
-        button:hover { background: var(--text-primary); color: var(--bg); border-color: var(--text-primary); }
-
-        /* 文本层级：Hero Title 极大且粗 */
-        .hero-title { font-size: 6rem; font-weight: 900; color: var(--text-primary); margin: 0; letter-spacing: -4px; line-height: 0.9; }
-        .intro-body { font-size: 1.2rem; line-height: 1.6; color: var(--text-secondary); max-width: 650px; margin-top: 30px; font-weight: 500; text-align: center; }
-        .sub-tag { font-size: 12px; letter-spacing: 5px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 15px; font-weight: 700; }
-
-        /* 画板与计算器布局 */
-        .app-grid { display: grid; grid-template-columns: 350px 1fr; gap: 60px; height: 100%; align-items: start; }
-        canvas { background: #000; border: 2px solid var(--border); border-radius: 4px; }
-
-        /* 聊天气泡：对比度更强 */
-        #chat-log { flex: 1; overflow-y: auto; padding-right: 20px; margin-bottom: 25px; display: flex; flex-direction: column; gap: 25px; }
-        .msg { max-width: 80%; line-height: 1.6; font-size: 1.05rem; font-weight: 500; }
-        .ai-msg { color: var(--text-secondary); border-left: 3px solid var(--text-dim); padding-left: 25px; align-self: flex-start; }
-        .user-msg { color: var(--text-primary); align-self: flex-end; text-align: right; }
-
-        /* 词典定义 */
-        .def-box { font-size: 1.4rem; font-weight: 500; line-height: 1.5; color: var(--text-secondary); }
+        /* Chat */
+        #chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 30px; padding-bottom: 20px; }
+        .msg { font-size: 1.1rem; font-weight: 400; line-height: 1.6; max-width: 80%; }
+        .ai-msg { color: var(--text-s); border-left: 2px solid #333; padding-left: 25px; align-self: flex-start; }
+        .user-msg { color: var(--text-p); align-self: flex-end; text-align: right; font-weight: 600; }
     </style>
 </head>
-<body onclick="startAudio()">
+<body onclick="initAudio()">
 
-    <div id="ui-top-left">
-        <span id="sys-label">SYSTEM READY</span>
-        <span id="back-btn" onclick="goHome()"> / BACK / EXIT</span>
+    <div id="hud-top">
+        <div id="sys-label">SYSTEM_V15_READY</div>
+        <div id="back-btn" onclick="goHome()">EXIT_ARCHIVE</div>
+        <div id="la-time">00:00:00</div>
     </div>
-    
-    <div id="ui-bottom-left">LA 00:00:00</div>
 
     <div id="home-screen" class="screen">
-        <div class="sub-tag">Archive v14.Bold</div>
-        <input type="text" id="main-cmd" placeholder="COMMAND" autocomplete="off">
+        <div class="sub">Command Interface</div>
+        <input type="text" id="main-cmd" placeholder="___" autocomplete="off" autofocus>
     </div>
 
     <div id="app-screen" class="screen hidden">
@@ -95,65 +75,44 @@
     </div>
 
     <script>
-        // --- 1. 物理音效系统 (Mechanical Keyboard Click) ---
-        const typeSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFRm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTdvT19hc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rh");
-        typeSound.volume = 0.15;
+        // --- 1. Sound Engine ---
+        const click = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFRm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTdvT19hc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rh");
+        function playSfx() { const s = click.cloneNode(); s.volume = 0.1; s.play().catch(()=>{}); }
+        function initAudio() { document.body.onclick = null; }
 
-        function playType() {
-            const sound = typeSound.cloneNode();
-            sound.volume = 0.12;
-            sound.play().catch(() => {});
-        }
-
-        function startAudio() { document.body.onclick = null; }
-
+        // --- 2. Navigation ---
         const mainCmd = document.getElementById('main-cmd');
         const appContent = document.getElementById('app-content');
         
-        // 全局绑定输入音效
-        document.addEventListener('input', (e) => { if(e.target.tagName === 'INPUT') playType(); });
-
+        mainCmd.addEventListener('input', playSfx);
         mainCmd.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const cmd = mainCmd.value.toLowerCase().trim();
-                const valid = ['vocabulary', 'calculator', 'drawing', 'timing', 'weather', 'chat', 'hello'];
-                if (valid.includes(cmd)) launchApp(cmd);
+            if(e.key === 'Enter') {
+                const val = mainCmd.value.toLowerCase().trim();
+                const apps = ['vocabulary','drawing','weather','chat','calculator','timing','hello'];
+                if(apps.includes(val)) launch(val);
             }
         });
 
-        function launchApp(type) {
+        function launch(type) {
             document.getElementById('home-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            document.getElementById('back-btn').style.display = 'inline';
-            document.getElementById('sys-label').style.opacity = '0.3';
-            renderApp(type);
+            document.getElementById('back-btn').classList.add('show');
+            render(type);
         }
 
         function goHome() {
             document.getElementById('app-screen').classList.add('hidden');
             document.getElementById('home-screen').classList.remove('hidden');
-            document.getElementById('back-btn').style.display = 'none';
-            document.getElementById('sys-label').style.opacity = '1';
+            document.getElementById('back-btn').classList.remove('show');
             mainCmd.value = '';
+            clearInterval(swInt); clearInterval(trInt);
         }
 
-        function renderApp(type) {
+        function render(type) {
             appContent.innerHTML = '';
-            appContent.style.justifyContent = "flex-start";
-            appContent.style.alignItems = "stretch";
-
             if(type === 'hello') {
-                appContent.style.justifyContent = "center";
-                appContent.style.alignItems = "center";
-                appContent.innerHTML = `
-                    <div class="sub-tag">Archive Introduction</div>
-                    <div class="hero-title">Hello.</div>
-                    <div class="intro-body">
-                        This is a private digital sanctuary built for those who seek deep focus. 
-                        A space where advanced utility meets uncompromising aesthetics. 
-                        Every tool here is a weapon against distraction.
-                    </div>
-                `;
+                appContent.innerHTML = `<div style="text-align:center"><div class="hero">Hello.</div><div class="sub" style="margin-top:30px">A private digital sanctuary.</div><p style="max-width:500px; color:var(--text-s); font-weight:600; line-height:1.8">Eliminate noise. Focus on the core. Every tool in this archive is designed for deep work.</p></div>`;
+                appContent.style.justifyContent = 'center'; appContent.style.alignItems = 'center';
             } else if(type === 'vocabulary') initVocab();
             else if(type === 'drawing') initDrawing();
             else if(type === 'weather') initWeather();
@@ -164,88 +123,103 @@
 
         // --- VOCABULARY ---
         async function initVocab() {
-            appContent.innerHTML = `<input type="text" id="v-in" placeholder="SEARCH WORD" style="width:100%; text-align:left;"><div id="v-res" style="margin-top:60px;"></div>`;
+            appContent.style.justifyContent = 'flex-start'; appContent.style.alignItems = 'stretch';
+            appContent.innerHTML = `<input type="text" id="v-in" placeholder="WORD" style="width:100%; text-align:left; font-size:3rem; font-weight:900; border:none; border-bottom:2px solid #222; outline:none; background:transparent; color:#fff; padding:20px 0;"><div id="v-res" style="margin-top:60px"></div>`;
             const vin = document.getElementById('v-in'); vin.focus();
             vin.onkeypress = async (e) => {
                 if(e.key === 'Enter') {
-                    const word = vin.value.trim();
-                    const res = document.getElementById('v-res'); res.innerHTML = "FETCHING...";
-                    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+                    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${vin.value}`);
                     const d = await r.json();
                     if(d[0]) {
                         const def = d[0].meanings[0].definitions[0].definition;
-                        const zh = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(def)}&langpair=en|zh-CN`).then(res=>res.json());
-                        res.innerHTML = `
-                            <div class="hero-title" style="font-size:5rem;">${word}</div>
-                            <div class="def-box" style="margin-top:40px;">
-                                ${def}
-                                <div style="color:var(--text-dim); margin-top:15px; font-weight:700;">${zh.responseData.translatedText}</div>
-                            </div>`;
-                    } else { res.innerHTML = "WORD NOT FOUND."; }
+                        const zh = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(def)}&langpair=en|zh-CN`).then(r=>r.json());
+                        document.getElementById('v-res').innerHTML = `<div class="hero" style="font-size:5rem">${vin.value}</div><div style="font-size:1.5rem; margin-top:30px; font-weight:600; line-height:1.6">${def}<br><span style="color:var(--text-s)">${zh.responseData.translatedText}</span></div>`;
+                    }
                 }
             };
         }
 
-        // --- DRAWING (修复 Undo 并补全 SAVE PNG) ---
-        let history = [];
-        let step = -1;
+        // --- DRAWING (WITH SIZE REGULATOR) ---
+        let dHistory = []; let dStep = -1;
         function initDrawing() {
             appContent.innerHTML = `
-                <div style="margin-bottom:25px; display:flex; justify-content:space-between;">
-                    <div>
-                        <button onclick="dMode='pen'">PEN</button>
-                        <button onclick="dMode='eraser'">ERASER</button>
-                        <button onclick="undo()">UNDO</button>
-                        <button onclick="clearD()">CLEAR</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
+                    <div style="display:flex; align-items:center; gap:20px">
+                        <button onclick="dMode='pen'">Pen</button>
+                        <button onclick="dMode='eraser'">Eraser</button>
+                        <div style="display:flex; align-items:center; gap:10px; margin-left:20px">
+                            <span style="font-size:10px; font-weight:900">SIZE</span>
+                            <input type="range" id="d-size" min="1" max="100" value="2">
+                        </div>
                     </div>
-                    <button onclick="savePNG()" style="background:var(--text-primary); color:var(--bg);">SAVE PNG</button>
+                    <div>
+                        <button onclick="undo()">Undo</button>
+                        <button onclick="clearD()">Clear</button>
+                        <button onclick="saveD()" style="background:#fff; color:#000">Save</button>
+                    </div>
                 </div>
-                <canvas id="d-can" width="1100" height="550"></canvas>
+                <canvas id="d-can" width="1100" height="580"></canvas>
             `;
             const c = document.getElementById('d-can'), ctx = c.getContext('2d');
             window.dMode = 'pen';
-            const saveStep = () => { step++; if(step < history.length) history.length = step; history.push(c.toDataURL()); };
-            saveStep();
-
+            const save = () => { dStep++; dHistory.length = dStep; dHistory.push(c.toDataURL()); };
+            save();
             let drawing = false;
             c.onmousedown = (e) => { drawing = true; ctx.beginPath(); const r = c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
-            c.onmouseup = () => { if(drawing) saveStep(); drawing = false; };
+            c.onmouseup = () => { if(drawing) save(); drawing = false; };
             c.onmousemove = (e) => {
                 if(!drawing) return;
                 const r = c.getBoundingClientRect();
-                ctx.lineWidth = dMode === 'eraser' ? 50 : 2;
-                ctx.strokeStyle = dMode === 'eraser' ? '#000000' : '#FFFFFF';
-                ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-                ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
+                ctx.lineWidth = document.getElementById('d-size').value;
+                ctx.strokeStyle = dMode === 'eraser' ? '#000' : '#fff';
+                ctx.lineCap = 'round'; ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
             };
-            window.undo = () => { if(step > 0) { step--; let img = new Image(); img.src = history[step]; img.onload = () => { ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(img,0,0); } } };
-            window.clearD = () => { ctx.clearRect(0,0,c.width,c.height); saveStep(); };
-            window.savePNG = () => { const link = document.createElement('a'); link.download = 'sketch.png'; link.href = c.toDataURL(); link.click(); };
+            window.undo = () => { if(dStep > 0) { dStep--; let i = new Image(); i.src = dHistory[dStep]; i.onload = () => { ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0); } } };
+            window.clearD = () => { ctx.clearRect(0,0,c.width,c.height); save(); };
+            window.saveD = () => { const a = document.createElement('a'); a.download = 'sketch.png'; a.href = c.toDataURL(); a.click(); };
         }
 
-        // --- WEATHER ---
-        let wDay = 1;
-        function initWeather() {
-            const update = () => {
-                const data = [{l:'Yesterday', t:19}, {l:'Today', t:22}, {l:'Tomorrow', t:24}];
-                appContent.style.justifyContent = "center";
-                appContent.style.alignItems = "center";
-                appContent.innerHTML = `
-                    <div class="sub-tag">${data[wDay].l}</div>
-                    <div class="hero-title" style="font-size:10rem;">${data[wDay].t}°C</div>
-                    <div class="sub-tag" style="margin-top:20px;">Los Angeles</div>
-                    <div style="margin-top:60px; display:flex;">
-                        <button onclick="wMove(-1)">PREV</button>
-                        <button onclick="wMove(1)">NEXT</button>
-                    </div>`;
-            };
-            window.wMove = (n) => { wDay = Math.max(0, Math.min(2, wDay + n)); update(); };
-            update();
+        // --- TIMING (STOPWATCH + TIMER) ---
+        let swMs = 0, swInt = null, trInt = null;
+        function initTiming() {
+            appContent.style.justifyContent = 'center';
+            appContent.innerHTML = `
+                <div class="app-split" style="grid-template-columns: 1fr 1fr; text-align:center">
+                    <div>
+                        <div class="sub">Stopwatch</div>
+                        <div id="sw-val" class="hero" style="font-size:5rem">00:00:00</div>
+                        <div style="margin-top:40px"><button onclick="swAction('s')">Start</button><button onclick="swAction('p')">Stop</button></div>
+                    </div>
+                    <div style="border-left:1px solid var(--border)">
+                        <div class="sub">Timer</div>
+                        <div id="tr-val" class="hero" style="font-size:5rem">00:00:00</div>
+                        <div style="margin-top:40px">
+                            <input type="number" id="tr-in" placeholder="MINS" style="width:100px; background:transparent; border:1px solid var(--border); color:#fff; text-align:center; padding:10px; margin-bottom:10px"><br>
+                            <button onclick="trAction()">Set Timer</button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
+        window.swAction = (t) => {
+            const el = document.getElementById('sw-val');
+            if(t==='s') { if(!swInt) swInt = setInterval(()=>{swMs+=1000; el.innerText=new Date(swMs).toISOString().substr(11,8)},1000); }
+            else { clearInterval(swInt); swInt=null; }
+        };
+        window.trAction = () => {
+            clearInterval(trInt);
+            let sec = (parseInt(document.getElementById('tr-in').value) || 0) * 60;
+            const el = document.getElementById('tr-val');
+            trInt = setInterval(() => {
+                if(sec <= 0) { clearInterval(trInt); alert("Time's Up"); return; }
+                sec--; let m = Math.floor(sec/60), s = sec%60;
+                el.innerText = `00:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            }, 1000);
+        };
 
-        // --- CHAT (Jefferson / Presley 特定逻辑) ---
+        // --- CHAT ---
         function initChat() {
-            appContent.innerHTML = `<div id="chat-log"></div><input type="text" id="chat-in" placeholder="MESSAGE" style="width:100%; text-align:left;">`;
+            appContent.innerHTML = `<div id="chat-log"></div><input type="text" id="chat-in" placeholder="TYPE MESSAGE..." style="width:100%; background:transparent; border:none; border-top:1px solid var(--border); padding:30px 0; color:#fff; outline:none; font-size:1.2rem; font-weight:600">`;
             const cin = document.getElementById('chat-in'); cin.focus();
             cin.onkeypress = (e) => {
                 if(e.key === 'Enter') {
@@ -254,58 +228,42 @@
                     log.innerHTML += `<div class="msg user-msg">${m}</div>`;
                     cin.value = '';
                     setTimeout(() => {
-                        let ans = "guess who am I";
-                        if(m === 'Jefferson') ans = "I love you Presley";
-                        else if(m === 'Presley') ans = "She‘s not here";
-                        else if(m === '15') ans = "basketball will be better after 18";
-                        else if(m === '16') ans = "sure I do like this one";
-                        log.innerHTML += `<div class="msg ai-msg">${ans}</div>`;
+                        let a = "guess who am I";
+                        if(m === 'Jefferson') a = "I love you Presley";
+                        else if(m === 'Presley') a = "She‘s not here";
+                        else if(m === '15') a = "basketball will be better after 18";
+                        else if(m === '16') a = "sure I do like this one";
+                        log.innerHTML += `<div class="msg ai-msg">${a}</div>`;
                         log.scrollTop = log.scrollHeight;
                     }, 400);
                 }
             };
         }
 
+        // --- WEATHER ---
+        let wD = 1;
+        function initWeather() {
+            const up = () => {
+                const ds = [{l:'Yesterday', t:19}, {l:'Today', t:22}, {l:'Tomorrow', t:24}];
+                appContent.style.justifyContent = 'center'; appContent.style.alignItems = 'center';
+                appContent.innerHTML = `<div class="sub">${ds[wD].l}</div><div class="hero" style="font-size:10rem">${ds[wD].t}°C</div><div class="sub" style="margin-top:20px">Los Angeles</div><div style="margin-top:60px"><button onclick="wM(-1)">Prev</button><button onclick="wM(1)">Next</button></div>`;
+            };
+            window.wM = (n) => { wD = Math.max(0, Math.min(2, wD+n)); up(); };
+            up();
+        }
+
         // --- CALCULATOR ---
-        let calcExp = "";
+        let cExp = "";
         function initCalc() {
-            appContent.innerHTML = `
-                <div class="app-grid">
-                    <div>
-                        <div id="c-out" style="font-size:4rem; color:white; text-align:right; margin-bottom:40px; font-weight:700; height:80px;">0</div>
-                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
-                            ${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="runCalc('${k}')">${k.replace('Math.','')}</button>`).join('')}
-                        </div>
-                    </div>
-                    <canvas id="c-pad" width="700" height="520"></canvas>
-                </div>`;
+            appContent.innerHTML = `<div class="app-split"><div><div id="c-out" style="font-size:4rem; font-weight:900; text-align:right; margin-bottom:40px; height:80px">0</div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="runC('${k}')">${k.replace('Math.','')}</button>`).join('')}</div></div><canvas id="c-pad" width="700" height="550"></canvas></div>`;
             const ctx = document.getElementById('c-pad').getContext('2d');
-            window.runCalc = (k) => { playType(); if(k==='C') calcExp=""; else if(k==='=') calcExp=eval(calcExp).toString(); else calcExp+=k; document.getElementById('c-out').innerText = calcExp || "0"; };
+            window.runC = (k) => { playSfx(); if(k==='C') cExp=""; else if(k==='=') cExp=eval(cExp).toString(); else cExp+=k; document.getElementById('c-out').innerText = cExp || "0"; };
         }
 
-        // --- TIMING ---
-        let swMs = 0, swInterval = null;
-        function initTiming() {
-            appContent.style.justifyContent = "center";
-            appContent.style.alignItems = "center";
-            appContent.innerHTML = `
-                <div class="sub-tag">System Stopwatch</div>
-                <div id="sw-h" class="hero-title">00:00:00</div>
-                <div style="margin-top:60px;">
-                    <button onclick="swAction('s')">START</button>
-                    <button onclick="swAction('p')">STOP</button>
-                    <button onclick="swMs=0; swAction('p')">RESET</button>
-                </div>`;
-        }
-        window.swAction = (type) => {
-            if(type === 's') { if(!swInterval) swInterval = setInterval(()=> { swMs+=1000; document.getElementById('sw-h').innerText=new Date(swMs).toISOString().substr(11,8)},1000); }
-            else { clearInterval(swInterval); swInterval=null; if(swMs===0) document.getElementById('sw-h').innerText="00:00:00"; }
-        };
-
-        // 底部时钟
+        // LA Time HUD
         setInterval(() => {
             const now = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour12: false });
-            document.getElementById('ui-bottom-left').innerText = `LA ${now}`;
+            document.getElementById('la-time').innerText = now;
         }, 1000);
     </script>
 </body>
