@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist OS v8.CustomChat</title>
+    <title>Minimalist OS v8.Final_Fixed</title>
     <style>
         :root {
             --bg: #0d0d0d;
@@ -130,12 +130,12 @@
             else if(type === 'chat') initChat();
         }
 
-        // --- 1. CHAT (逻辑更新) ---
+        // --- 1. CHAT (逻辑修正版) ---
         function initChat() {
             appContent.innerHTML = `
-                <div id="chat-log"><div class="msg ai-msg">Identity encrypted. Start interaction.</div></div>
+                <div id="chat-log"><div class="msg ai-msg">Console initialized.</div></div>
                 <div style="display:flex; gap:12px;">
-                    <input type="text" id="chat-in" placeholder="Query..." style="flex:1;">
+                    <input type="text" id="chat-in" placeholder="Message..." style="flex:1;">
                     <button id="chat-send">SEND</button>
                 </div>`;
             const input = document.getElementById('chat-in');
@@ -151,7 +151,7 @@
                 setTimeout(() => {
                     const aMsg = document.createElement('div'); aMsg.className='msg ai-msg';
                     
-                    // 特殊逻辑判断
+                    // 严格匹配逻辑
                     if (m === 'Jefferson') {
                         aMsg.innerText = "I love you Presley";
                     } else if (m === 'Presley') {
@@ -161,6 +161,7 @@
                     } else if (m === '16') {
                         aMsg.innerText = "sure I do like this one";
                     } else {
+                        // 任何其他输入都回复这句话
                         aMsg.innerText = "guess who am I";
                     }
 
