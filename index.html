@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist v13 // Balanced</title>
+    <title>Minimalist v14 // Bold & Balanced</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400&family=JetBrains+Mono:wght@100&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500&display=swap');
 
         :root {
-            --bg: #080808;
-            --text-primary: #e0e0e0;
-            --text-secondary: #666;
-            --accent: #fff;
-            --border: rgba(255, 255, 255, 0.08);
-            --transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            --bg: #050505; /* 深邃黑 */
+            --text-primary: #FFFFFF; /* 纯白 */
+            --text-secondary: #A0A0A0; /* 中灰，确保可读性 */
+            --text-dim: #505050; /* 暗灰，用于占位符 */
+            --border: rgba(255, 255, 255, 0.15);
+            --transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -23,12 +23,12 @@
             font-family: 'Inter', sans-serif; overflow: hidden; 
         }
 
-        /* 顶部与底部全局标签：调整了亮度与字号，使其清晰可见但不抢戏 */
-        #ui-top-left { position: fixed; top: 40px; left: 40px; font-size: 11px; letter-spacing: 3px; z-index: 100; }
-        #back-btn { cursor: pointer; color: var(--text-secondary); transition: var(--transition); display: none; }
-        #back-btn:hover { color: var(--accent); }
+        /* 顶部与底部全局标签：字重增加，颜色加亮 */
+        #ui-top-left { position: fixed; top: 40px; left: 40px; font-size: 13px; letter-spacing: 2px; z-index: 100; font-weight: 700; color: var(--text-secondary); }
+        #back-btn { cursor: pointer; color: var(--text-primary); transition: var(--transition); display: none; border-bottom: 2px solid transparent; }
+        #back-btn:hover { border-bottom-color: var(--text-primary); }
         
-        #ui-bottom-left { position: fixed; bottom: 40px; left: 40px; font-size: 11px; font-family: 'JetBrains Mono'; color: var(--text-secondary); }
+        #ui-bottom-left { position: fixed; bottom: 40px; left: 40px; font-size: 12px; font-family: 'JetBrains Mono'; color: var(--text-secondary); font-weight: 500; letter-spacing: 1px;}
 
         /* 核心框架 */
         .screen { 
@@ -36,39 +36,44 @@
             justify-content: center; align-items: center; transition: var(--transition); 
         }
         .hidden { display: none !important; opacity: 0; }
-        .container { width: 85%; max-width: 1000px; height: 75vh; animation: fadeIn 1s ease; }
+        .container { width: 85%; max-width: 1100px; height: 75vh; animation: fadeIn 0.8s ease-out; display: flex; flex-direction: column; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 输入框：平衡了焦点时的视觉反馈 */
+        /* 输入框：加粗处理 */
         input { 
-            background: transparent; border: none; border-bottom: 1px solid var(--border); 
-            color: var(--text-primary); padding: 12px 0; outline: none; width: 280px; 
-            text-align: center; font-size: 1.1rem; font-weight: 300; transition: var(--transition);
+            background: transparent; border: none; border-bottom: 2px solid var(--border); 
+            color: var(--text-primary); padding: 15px 0; outline: none; width: 320px; 
+            text-align: center; font-size: 1.5rem; font-weight: 700; transition: var(--transition);
         }
-        input:focus { width: 400px; border-bottom-color: var(--text-secondary); }
-        input::placeholder { color: #333; letter-spacing: 2px; font-size: 0.8rem; }
+        input:focus { width: 450px; border-bottom-color: var(--text-primary); }
+        input::placeholder { color: var(--text-dim); letter-spacing: 1px; font-weight: 500; }
 
-        /* 按钮：扁平化，仅在交互时高亮 */
+        /* 按钮：强化视觉感 */
         button { 
-            background: transparent; border: 1px solid var(--border); color: var(--text-secondary); 
-            padding: 10px 20px; font-size: 10px; letter-spacing: 2px; transition: var(--transition); margin: 4px;
+            background: transparent; border: 2px solid var(--border); color: var(--text-primary); 
+            padding: 12px 24px; font-size: 11px; letter-spacing: 2px; transition: var(--transition); 
+            margin: 5px; font-weight: 700; text-transform: uppercase; cursor: pointer;
         }
-        button:hover { border-color: var(--text-primary); color: var(--text-primary); }
+        button:hover { background: var(--text-primary); color: var(--bg); border-color: var(--text-primary); }
 
-        /* 文本层级优化 */
-        .hero-title { font-size: 4.5rem; font-weight: 100; color: var(--text-primary); margin: 0; letter-spacing: -2px; }
-        .sub-tag { font-size: 10px; letter-spacing: 6px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 20px; }
+        /* 文本层级：Hero Title 极大且粗 */
+        .hero-title { font-size: 6rem; font-weight: 900; color: var(--text-primary); margin: 0; letter-spacing: -4px; line-height: 0.9; }
+        .intro-body { font-size: 1.2rem; line-height: 1.6; color: var(--text-secondary); max-width: 650px; margin-top: 30px; font-weight: 500; text-align: center; }
+        .sub-tag { font-size: 12px; letter-spacing: 5px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 15px; font-weight: 700; }
 
         /* 画板与计算器布局 */
-        .app-grid { display: grid; grid-template-columns: 300px 1fr; gap: 60px; height: 100%; }
-        canvas { background: #050505; border: 1px solid var(--border); border-radius: 4px; }
+        .app-grid { display: grid; grid-template-columns: 350px 1fr; gap: 60px; height: 100%; align-items: start; }
+        canvas { background: #000; border: 2px solid var(--border); border-radius: 4px; }
 
-        /* 聊天气泡：修复了截图中的不对称感 */
-        #chat-log { flex: 1; overflow-y: auto; padding-right: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 30px; }
-        .msg { max-width: 75%; line-height: 1.7; font-size: 0.95rem; font-weight: 300; }
-        .ai-msg { color: var(--text-secondary); border-left: 1px solid #222; padding-left: 20px; align-self: flex-start; }
+        /* 聊天气泡：对比度更强 */
+        #chat-log { flex: 1; overflow-y: auto; padding-right: 20px; margin-bottom: 25px; display: flex; flex-direction: column; gap: 25px; }
+        .msg { max-width: 80%; line-height: 1.6; font-size: 1.05rem; font-weight: 500; }
+        .ai-msg { color: var(--text-secondary); border-left: 3px solid var(--text-dim); padding-left: 25px; align-self: flex-start; }
         .user-msg { color: var(--text-primary); align-self: flex-end; text-align: right; }
+
+        /* 词典定义 */
+        .def-box { font-size: 1.4rem; font-weight: 500; line-height: 1.5; color: var(--text-secondary); }
     </style>
 </head>
 <body onclick="startAudio()">
@@ -81,7 +86,7 @@
     <div id="ui-bottom-left">LA 00:00:00</div>
 
     <div id="home-screen" class="screen">
-        <div class="sub-tag">Archive Tools</div>
+        <div class="sub-tag">Archive v14.Bold</div>
         <input type="text" id="main-cmd" placeholder="COMMAND" autocomplete="off">
     </div>
 
@@ -90,13 +95,13 @@
     </div>
 
     <script>
-        // --- 1. 物理音效系统 (修复：采用更清脆的采样声) ---
+        // --- 1. 物理音效系统 (Mechanical Keyboard Click) ---
         const typeSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFRm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTdvT19hc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rh");
-        typeSound.volume = 0.12;
+        typeSound.volume = 0.15;
 
         function playType() {
             const sound = typeSound.cloneNode();
-            sound.volume = 0.1;
+            sound.volume = 0.12;
             sound.play().catch(() => {});
         }
 
@@ -105,7 +110,7 @@
         const mainCmd = document.getElementById('main-cmd');
         const appContent = document.getElementById('app-content');
         
-        // 绑定全局输入音效
+        // 全局绑定输入音效
         document.addEventListener('input', (e) => { if(e.target.tagName === 'INPUT') playType(); });
 
         mainCmd.addEventListener('keypress', (e) => {
@@ -134,8 +139,21 @@
 
         function renderApp(type) {
             appContent.innerHTML = '';
+            appContent.style.justifyContent = "flex-start";
+            appContent.style.alignItems = "stretch";
+
             if(type === 'hello') {
-                appContent.innerHTML = `<div class="screen"><div class="hero-title">Hello.</div><div class="sub-tag" style="margin-top:20px; opacity:0.5;">A Sanctuary for Focus</div></div>`;
+                appContent.style.justifyContent = "center";
+                appContent.style.alignItems = "center";
+                appContent.innerHTML = `
+                    <div class="sub-tag">Archive Introduction</div>
+                    <div class="hero-title">Hello.</div>
+                    <div class="intro-body">
+                        This is a private digital sanctuary built for those who seek deep focus. 
+                        A space where advanced utility meets uncompromising aesthetics. 
+                        Every tool here is a weapon against distraction.
+                    </div>
+                `;
             } else if(type === 'vocabulary') initVocab();
             else if(type === 'drawing') initDrawing();
             else if(type === 'weather') initWeather();
@@ -146,59 +164,86 @@
 
         // --- VOCABULARY ---
         async function initVocab() {
-            appContent.innerHTML = `<input type="text" id="v-in" placeholder="ENTER WORD" style="width:100%; text-align:left;"><div id="v-res" style="margin-top:80px;"></div>`;
+            appContent.innerHTML = `<input type="text" id="v-in" placeholder="SEARCH WORD" style="width:100%; text-align:left;"><div id="v-res" style="margin-top:60px;"></div>`;
             const vin = document.getElementById('v-in'); vin.focus();
             vin.onkeypress = async (e) => {
                 if(e.key === 'Enter') {
                     const word = vin.value.trim();
-                    const res = document.getElementById('v-res'); res.innerHTML = "...";
+                    const res = document.getElementById('v-res'); res.innerHTML = "FETCHING...";
                     const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
                     const d = await r.json();
                     if(d[0]) {
                         const def = d[0].meanings[0].definitions[0].definition;
                         const zh = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(def)}&langpair=en|zh-CN`).then(res=>res.json());
-                        res.innerHTML = `<div class="hero-title">${word}</div><div style="margin-top:30px; line-height:2; color:var(--text-secondary); max-width:700px;">${def}<div style="color:#444; margin-top:10px;">${zh.responseData.translatedText}</div></div>`;
-                    }
+                        res.innerHTML = `
+                            <div class="hero-title" style="font-size:5rem;">${word}</div>
+                            <div class="def-box" style="margin-top:40px;">
+                                ${def}
+                                <div style="color:var(--text-dim); margin-top:15px; font-weight:700;">${zh.responseData.translatedText}</div>
+                            </div>`;
+                    } else { res.innerHTML = "WORD NOT FOUND."; }
                 }
             };
         }
 
-        // --- DRAWING (修复 Undo: 采用快照压栈) ---
+        // --- DRAWING (修复 Undo 并补全 SAVE PNG) ---
         let history = [];
         let step = -1;
         function initDrawing() {
-            appContent.innerHTML = `<div style="margin-bottom:25px;"><button onclick="dMode='pen'">PEN</button><button onclick="dMode='eraser'">ERASER</button><button onclick="undo()">UNDO</button><button onclick="clearD()">CLEAR</button></div><canvas id="d-can" width="1000" height="550"></canvas>`;
+            appContent.innerHTML = `
+                <div style="margin-bottom:25px; display:flex; justify-content:space-between;">
+                    <div>
+                        <button onclick="dMode='pen'">PEN</button>
+                        <button onclick="dMode='eraser'">ERASER</button>
+                        <button onclick="undo()">UNDO</button>
+                        <button onclick="clearD()">CLEAR</button>
+                    </div>
+                    <button onclick="savePNG()" style="background:var(--text-primary); color:var(--bg);">SAVE PNG</button>
+                </div>
+                <canvas id="d-can" width="1100" height="550"></canvas>
+            `;
             const c = document.getElementById('d-can'), ctx = c.getContext('2d');
             window.dMode = 'pen';
-            const save = () => { step++; if(step < history.length) history.length = step; history.push(c.toDataURL()); };
-            save();
+            const saveStep = () => { step++; if(step < history.length) history.length = step; history.push(c.toDataURL()); };
+            saveStep();
 
             let drawing = false;
             c.onmousedown = (e) => { drawing = true; ctx.beginPath(); const r = c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
-            c.onmouseup = () => { if(drawing) save(); drawing = false; };
+            c.onmouseup = () => { if(drawing) saveStep(); drawing = false; };
             c.onmousemove = (e) => {
                 if(!drawing) return;
                 const r = c.getBoundingClientRect();
-                ctx.lineWidth = dMode === 'eraser' ? 40 : 1.2;
-                ctx.strokeStyle = dMode === 'eraser' ? '#080808' : '#fff';
+                ctx.lineWidth = dMode === 'eraser' ? 50 : 2;
+                ctx.strokeStyle = dMode === 'eraser' ? '#000000' : '#FFFFFF';
+                ctx.lineCap = 'round'; ctx.lineJoin = 'round';
                 ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
             };
             window.undo = () => { if(step > 0) { step--; let img = new Image(); img.src = history[step]; img.onload = () => { ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(img,0,0); } } };
-            window.clearD = () => { ctx.clearRect(0,0,c.width,c.height); save(); };
+            window.clearD = () => { ctx.clearRect(0,0,c.width,c.height); saveStep(); };
+            window.savePNG = () => { const link = document.createElement('a'); link.download = 'sketch.png'; link.href = c.toDataURL(); link.click(); };
         }
 
-        // --- WEATHER (修复：三日数据联动) ---
+        // --- WEATHER ---
         let wDay = 1;
         function initWeather() {
             const update = () => {
                 const data = [{l:'Yesterday', t:19}, {l:'Today', t:22}, {l:'Tomorrow', t:24}];
-                appContent.innerHTML = `<div class="screen"><div class="sub-tag">${data[wDay].l}</div><div class="hero-title" style="font-size:8rem;">${data[wDay].t}°C</div><div class="sub-tag" style="margin-top:20px;">Los Angeles</div><div style="margin-top:60px;"><button onclick="wMove(-1)">PREV</button><button onclick="wMove(1)">NEXT</button></div></div>`;
+                appContent.style.justifyContent = "center";
+                appContent.style.alignItems = "center";
+                appContent.innerHTML = `
+                    <div class="sub-tag">${data[wDay].l}</div>
+                    <div class="hero-title" style="font-size:10rem;">${data[wDay].t}°C</div>
+                    <div class="sub-tag" style="margin-top:20px;">Los Angeles</div>
+                    <div style="margin-top:60px; display:flex;">
+                        <button onclick="wMove(-1)">PREV</button>
+                        <button onclick="wMove(1)">NEXT</button>
+                    </div>`;
             };
             window.wMove = (n) => { wDay = Math.max(0, Math.min(2, wDay + n)); update(); };
             update();
         }
 
-        // --- CHAT (回复逻辑修复) ---
+        // --- CHAT (Jefferson / Presley 特定逻辑) ---
         function initChat() {
             appContent.innerHTML = `<div id="chat-log"></div><input type="text" id="chat-in" placeholder="MESSAGE" style="width:100%; text-align:left;">`;
             const cin = document.getElementById('chat-in'); cin.focus();
@@ -221,24 +266,43 @@
             };
         }
 
-        // --- CALCULATOR & TIMING ---
+        // --- CALCULATOR ---
         let calcExp = "";
         function initCalc() {
-            appContent.innerHTML = `<div class="app-grid"><div><div id="c-out" style="font-size:3rem; color:#fff; text-align:right; margin-bottom:40px; height:60px;">0</div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="runCalc('${k}')">${k.replace('Math.','')}</button>`).join('')}</div></div><canvas id="c-pad" width="650" height="500"></canvas></div>`;
+            appContent.innerHTML = `
+                <div class="app-grid">
+                    <div>
+                        <div id="c-out" style="font-size:4rem; color:white; text-align:right; margin-bottom:40px; font-weight:700; height:80px;">0</div>
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+                            ${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="runCalc('${k}')">${k.replace('Math.','')}</button>`).join('')}
+                        </div>
+                    </div>
+                    <canvas id="c-pad" width="700" height="520"></canvas>
+                </div>`;
             const ctx = document.getElementById('c-pad').getContext('2d');
             window.runCalc = (k) => { playType(); if(k==='C') calcExp=""; else if(k==='=') calcExp=eval(calcExp).toString(); else calcExp+=k; document.getElementById('c-out').innerText = calcExp || "0"; };
         }
 
-        function initTiming() {
-            appContent.innerHTML = `<div class="screen"><div class="sub-tag">Stopwatch</div><div id="sw-h" class="hero-title">00:00:00</div><div style="margin-top:40px;"><button onclick="swAction('s')">START</button><button onclick="swAction('p')">STOP</button></div></div>`;
-        }
+        // --- TIMING ---
         let swMs = 0, swInterval = null;
+        function initTiming() {
+            appContent.style.justifyContent = "center";
+            appContent.style.alignItems = "center";
+            appContent.innerHTML = `
+                <div class="sub-tag">System Stopwatch</div>
+                <div id="sw-h" class="hero-title">00:00:00</div>
+                <div style="margin-top:60px;">
+                    <button onclick="swAction('s')">START</button>
+                    <button onclick="swAction('p')">STOP</button>
+                    <button onclick="swMs=0; swAction('p')">RESET</button>
+                </div>`;
+        }
         window.swAction = (type) => {
             if(type === 's') { if(!swInterval) swInterval = setInterval(()=> { swMs+=1000; document.getElementById('sw-h').innerText=new Date(swMs).toISOString().substr(11,8)},1000); }
-            else { clearInterval(swInterval); swInterval=null; }
+            else { clearInterval(swInterval); swInterval=null; if(swMs===0) document.getElementById('sw-h').innerText="00:00:00"; }
         };
 
-        // 底部时钟更新
+        // 底部时钟
         setInterval(() => {
             const now = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour12: false });
             document.getElementById('ui-bottom-left').innerText = `LA ${now}`;
