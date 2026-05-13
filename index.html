@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Workspace</title>
+    <style>
+        /* --- CSS: Minimalist Design --- */
+        :root {
+            --bg: #f2f2f2;
+            --text: #555555;
+            --accent: #d1d1d1;
+            --input-bg: #ffffff;
+        }
+
+        /* 自动适配深色模式 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1a1a1a;
+                --text: #999999;
+                --accent: #333333;
+                --input-bg: #222222;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: "Inter", -apple-system, sans-serif;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 返回箭头 */
+        #back-btn {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: none;
+            z-index: 100;
+        }
+        #back-btn:hover { opacity: 1; }
+
+        /* 时间显示 */
+        #la-timer {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            font-size: 12px;
+            letter-spacing: 2px;
+            opacity: 0.6;
+        }
+
+        /* 初始界面 */
+        .screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        input[type="text"] {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--accent);
+            color: var(--text);
+            padding: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            outline: none;
+            width: 280px;
+            margin-top: 20px;
+        }
+
+        /* 各个功能的容器样式 */
+        .app-content {
+            width: 80%;
+            max-width: 800px;
+            height: 70%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 计算器分栏 */
+        .calc-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas {
+            border: 1px solid var(--accent);
+            background: var(--input-bg);
+            cursor: crosshair;
+        }
+
+        button {
+            background: var(--accent);
+            border: none;
+            color: var(--text);
+            padding: 10px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        #word-result {
+            margin-top: 20px;
+            text-align: left;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="back-btn" onclick="showHome()">←</div>
+    <div id="la-timer">LA TIME: --:--:--</div>
+
+    <div id="home-screen" class="screen">
+        <div>What do you need?</div>
+        <input type="text" id="main-cmd" placeholder="..." autocomplete="off">
+    </div>
+
+    <div id="app-screen" class="screen hidden">
+        <div id="app-container" class="app-content"></div>
+    </div>
+
+    <script>
+        const mainCmd = document.getElementById('main-cmd');
+        const homeScreen = document.getElementById('home-screen');
+        const appScreen = document.getElementById('app-screen');
+        const appContainer = document.getElementById('app-container');
+        const backBtn = document.getElementById('back-btn');
+
+        // --- 1. 核心导航逻辑 ---
+        mainCmd.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const val = mainCmd.value.toLowerCase().trim();
+                launchApp(val);
+            }
+        });
+
+        function launchApp(type) {
+            homeScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+            backBtn.style.display = 'block';
+            appContainer.innerHTML = '';
+
+            switch(type) {
+                case 'vocabulary': initVocab(); break;
+                case 'calculator': initCalc(); break;
+                case 'drawing': initDrawing(); break;
+                case 'timing': initTiming(); break;
+                case 'weather': initWeather(); break;
+                default: showHome(); alert('Command not found');
+            }
+        }
+
+        function showHome() {
+            homeScreen.classList.remove('hidden');
+            appScreen.classList.add('hidden');
+            backBtn.style.display = 'none';
+            mainCmd.value = '';
+        }
+
+        // --- 2. LA 时间逻辑 ---
+        function updateTime() {
+            const now = new Date();
+            const laTime = now.toLocaleTimeString('en-US', {
+                timeZone: 'America/Los_Angeles',
+                hour12: false
+            });
+            document.getElementById('la-timer').innerText = `LA TIME: ${laTime}`;
+        }
+        setInterval(updateTime, 1000);
+
+        // --- 3. 功能模块实现 ---
+
+        // VOCABULARY
+        function initVocab() {
+            appContainer.innerHTML = `
+                <input type="text" id="v-input" placeholder="Enter word...">
+                <div id="word-result"></div>
+            `;
+            document.getElementById('v-input').focus();
+            document.getElementById('v-input').addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    const word = e.target.value;
+                    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+                    const data = await res.json();
+                    if(data[0]) {
+                        const entry = data[0];
+                        document.getElementById('word-result').innerHTML = `
+                            <strong>[${entry.meanings[0].partOfSpeech}]</strong><br>
+                            Def: ${entry.meanings[0].definitions[0].definition}<br>
+                            Syn: ${entry.meanings[0].synonyms.slice(0,2).join(', ') || 'N/A'}<br>
+                            Ant: ${entry.meanings[0].antonyms.slice(0,2).join(', ') || 'N/A'}<br>
+                            Example: "${entry.meanings[0].definitions[0].example || 'N/A'}"
+                        `;
+                    }
+                }
+            });
+        }
+
+        // CALCULATOR + SCRATCHPAD
+        function initCalc() {
+            appContainer.style.maxWidth = "1000px";
+            appContainer.innerHTML = `
+                <div class="calc-wrapper">
+                    <div>
+                        <input type="text" id="calc-display" disabled style="width:100%; text-align:right; margin-bottom:10px;">
+                        <div id="calc-btns">
+                            ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+','C'].map(b => `<button onclick="handleCalc('${b}')">${b}</button>`).join('')}
+                        </div>
+                    </div>
+                    <canvas id="scratchpad" width="400" height="300"></canvas>
+                </div>
+            `;
+            initCanvas('scratchpad');
+        }
+
+        let calcVal = "";
+        window.handleCalc = (b) => {
+            const display = document.getElementById('calc-display');
+            if(b === '=') { try { calcVal = eval(calcVal); } catch { calcVal = "Error"; } }
+            else if(b === 'C') { calcVal = ""; }
+            else { calcVal += b; }
+            display.value = calcVal;
+        };
+
+        // DRAWING
+        function initDrawing() {
+            appContainer.innerHTML = `
+                <div style="margin-bottom:10px;">
+                    <button onclick="clearCanvas()">Clear</button>
+                    <button onclick="saveCanvas()">Save</button>
+                </div>
+                <canvas id="draw-board" width="600" height="400"></canvas>
+            `;
+            initCanvas('draw-board');
+        }
+
+        // TIMING
+        function initTiming() {
+            appContainer.innerHTML = `
+                <h2>Stopwatch</h2>
+                <div id="sw-display" style="font-size:3rem;">00:00:00</div>
+                <div>
+                    <button onclick="swAction('start')">Start</button>
+                    <button onclick="swAction('stop')">Stop</button>
+                    <button onclick="swAction('reset')">Reset</button>
+                </div>
+            `;
+        }
+
+        // WEATHER (Mock Data for LA)
+        function initWeather() {
+            appContainer.innerHTML = `
+                <div style="text-align:center;">
+                    <h2 id="w-day">TODAY</h2>
+                    <div style="font-size:4rem;">22°C</div>
+                    <p>Los Angeles - Sunny</p>
+                    <div style="margin-top:20px;">
+                        <button onclick="updateW('Yesterday')">←</button>
+                        <button onclick="updateW('Tomorrow')">→</button>
+                    </div>
+                </div>
+            `;
+        }
+        window.updateW = (day) => document.getElementById('w-day').innerText = day.toUpperCase();
+
+        // Canvas Helper
+        function initCanvas(id) {
+            const canvas = document.getElementById(id);
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let drawing = false;
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 2;
+
+            canvas.onmousedown = () => drawing = true;
+            canvas.onmouseup = () => { drawing = false; ctx.beginPath(); };
+            canvas.onmousemove = (e) => {
+                if(!drawing) return;
+                const rect = canvas.getBoundingClientRect();
+                ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+                ctx.stroke();
+            };
+            window.clearCanvas = () => ctx.clearRect(0,0,canvas.width,canvas.height);
+        }
+
+        updateTime();
+    </script>
+</body>
+</html>
