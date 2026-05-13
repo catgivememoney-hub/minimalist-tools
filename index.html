@@ -1,66 +1,89 @@
-<!DOCTYPE html>
+<!<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist Hub v5.Final</title>
+    <title>Minimalist OS v6.Animated</title>
     <style>
         :root {
-            --bg: #121212;
+            --bg: #0d0d0d;
             --text: #a0a0a0;
             --accent: #2c2c2c;
-            --border: #333333;
-            --input-bg: #1a1a1a;
+            --border: #222;
+            --input-bg: #151515;
+            --glow: rgba(255, 255, 255, 0.05);
+            --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        * { box-sizing: border-box; font-family: "Helvetica Neue", sans-serif; }
+        * { box-sizing: border-box; font-family: "Inter", "Helvetica Neue", sans-serif; }
         body, html { margin: 0; padding: 0; height: 100%; background-color: var(--bg); color: var(--text); overflow: hidden; }
         
-        #back-btn { position: fixed; top: 30px; left: 30px; font-size: 24px; cursor: pointer; opacity: 0.4; display: none; z-index: 1000; }
-        #la-timer { position: fixed; bottom: 30px; left: 30px; font-size: 11px; letter-spacing: 2px; opacity: 0.5; }
+        /* 1. 基础动画定义 */
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .hidden { display: none !important; }
+        @keyframes pop {
+            0% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
 
-        input, button { background: var(--input-bg); border: 1px solid var(--border); color: var(--text); padding: 10px; outline: none; }
-        button { cursor: pointer; transition: 0.2s; background: var(--accent); font-size: 13px; }
-        button:hover { background: var(--border); }
+        /* 2. 界面元素 */
+        #back-btn { position: fixed; top: 30px; left: 30px; font-size: 20px; cursor: pointer; opacity: 0.3; transition: var(--transition); z-index: 1000; }
+        #back-btn:hover { opacity: 1; transform: translateX(-5px); }
+        
+        #la-timer { position: fixed; bottom: 30px; left: 30px; font-size: 10px; letter-spacing: 3px; opacity: 0.4; animation: fadeInSlide 1s ease; }
 
-        .container { width: 95%; max-width: 1100px; height: 85vh; display: flex; flex-direction: column; }
+        .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: var(--transition); }
+        .hidden { display: none !important; opacity: 0; }
 
-        /* Vocabulary */
-        #v-res { margin-top: 20px; line-height: 1.6; max-width: 600px; text-align: left; }
-        .res-section { margin-bottom: 12px; border-left: 2px solid var(--border); padding-left: 15px; }
+        input { 
+            background: var(--input-bg); border: 1px solid var(--border); color: #eee; padding: 12px 20px; outline: none; 
+            transition: var(--transition); border-radius: 4px;
+        }
+        input:focus { border-color: #555; box-shadow: 0 0 15px var(--glow); }
 
-        /* Calculator */
+        button { 
+            background: var(--accent); border: 1px solid var(--border); color: var(--text); cursor: pointer; 
+            padding: 10px 18px; transition: var(--transition); border-radius: 4px;
+        }
+        button:hover { background: #333; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        button:active { transform: scale(0.95); }
+
+        .container { 
+            width: 95%; max-width: 1100px; height: 85vh; display: flex; flex-direction: column; 
+            animation: fadeInSlide 0.6s ease forwards; 
+        }
+
+        /* 词典/消息 逐条出现动画 */
+        .res-section, .msg { animation: fadeInSlide 0.5s ease both; }
+
+        /* 特殊布局 */
         .calc-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 40px; height: 100%; }
-        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .calc-display { width: 100%; height: 60px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text); text-align: right; font-size: 1.8rem; padding: 10px; margin-bottom: 10px; }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .calc-display { width: 100%; height: 70px; background: var(--input-bg); border: 1px solid var(--border); color: #fff; text-align: right; font-size: 2rem; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
 
-        /* Drawing */
-        .draw-bar { display: flex; gap: 12px; margin-bottom: 15px; align-items: center; background: var(--accent); padding: 10px; border-radius: 4px; }
-        canvas { background: var(--input-bg); border: 1px solid var(--border); cursor: crosshair; }
+        .draw-bar { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; }
+        canvas { background: #000; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* Timing */
-        .timing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; }
-        .time-box { border: 1px solid var(--border); padding: 40px; text-align: center; }
-        .big-clock { font-size: 4.5rem; font-weight: 200; margin: 25px 0; font-variant-numeric: tabular-nums; }
+        .time-box { border: 1px solid var(--border); padding: 40px; text-align: center; background: rgba(255,255,255,0.01); transition: var(--transition); }
+        .time-box:hover { border-color: #444; background: rgba(255,255,255,0.02); }
+        .big-clock { font-size: 5rem; font-weight: 100; color: #fff; margin: 25px 0; font-variant-numeric: tabular-nums; }
 
-        /* Chat */
-        #chat-log { flex: 1; overflow-y: auto; padding: 20px; border: 1px solid var(--border); background: var(--input-bg); margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 8px 12px; max-width: 80%; border-radius: 2px; font-size: 14px; line-height: 1.4; }
-        .user-msg { align-self: flex-end; background: var(--accent); color: #fff; }
-        .ai-msg { align-self: flex-start; border-left: 2px solid var(--text); }
+        #chat-log { flex: 1; overflow-y: auto; padding: 25px; border: 1px solid var(--border); background: var(--input-bg); margin-bottom: 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 15px; }
+        .user-msg { align-self: flex-end; background: #222; color: #fff; border-radius: 12px 12px 0 12px; }
+        .ai-msg { align-self: flex-start; border-left: 3px solid #444; background: rgba(255,255,255,0.02); border-radius: 0 12px 12px 12px; }
     </style>
 </head>
 <body>
 
-    <div id="back-btn" onclick="goHome()">←</div>
-    <div id="la-timer">LA TIME</div>
+    <div id="back-btn" onclick="goHome()">BACK</div>
+    <div id="la-timer">LA TIME 00:00:00</div>
 
     <div id="home-screen" class="screen">
-        <div style="margin-bottom: 25px; opacity: 0.6; letter-spacing: 2px;">WHAT DO YOU NEED?</div>
-        <input type="text" id="main-cmd" placeholder="..." autocomplete="off" style="width: 320px; text-align: center; font-size: 1.2rem;">
+        <div style="margin-bottom: 30px; opacity: 0.4; letter-spacing: 4px; font-size: 12px;">SYSTEM INITIALIZED</div>
+        <input type="text" id="main-cmd" placeholder="Type a command..." autocomplete="off" style="width: 350px; text-align: center; font-size: 1.1rem; border-radius: 30px;">
     </div>
 
     <div id="app-screen" class="screen hidden">
@@ -76,21 +99,45 @@
 
         let swInt = null, trInt = null, swMs = 0, trSec = 0;
         let drawHistory = [], drawStep = -1;
-        let currentMode = 'pen';
-        let aiEnabled = false;
+        let currentMode = 'pen', aiActive = false;
 
         mainCmd.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const val = mainCmd.value.toLowerCase().trim();
                 const apps = ['vocabulary', 'calculator', 'drawing', 'timing', 'weather', 'chat'];
                 if (apps.includes(val)) launchApp(val);
+                else {
+                    mainCmd.style.borderColor = 'red';
+                    setTimeout(() => mainCmd.style.borderColor = '', 500);
+                }
             }
         });
 
         function launchApp(type) {
-            homeScreen.classList.add('hidden');
-            appScreen.classList.remove('hidden');
-            backBtn.style.display = 'block';
+            homeScreen.style.opacity = '0';
+            setTimeout(() => {
+                homeScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
+                appScreen.style.opacity = '1';
+                backBtn.style.display = 'block';
+                renderApp(type);
+            }, 300);
+        }
+
+        function goHome() {
+            appScreen.style.opacity = '0';
+            setTimeout(() => {
+                appScreen.classList.add('hidden');
+                homeScreen.classList.remove('hidden');
+                homeScreen.style.opacity = '1';
+                backBtn.style.display = 'none';
+                mainCmd.value = '';
+                aiActive = false;
+                clearInterval(swInt); clearInterval(trInt);
+            }, 300);
+        }
+
+        function renderApp(type) {
             appContent.innerHTML = '';
             if(type === 'vocabulary') initVocab();
             else if(type === 'calculator') initCalc();
@@ -100,28 +147,13 @@
             else if(type === 'chat') initChat();
         }
 
-        function goHome() {
-            homeScreen.classList.remove('hidden');
-            appScreen.classList.add('hidden');
-            backBtn.style.display = 'none';
-            mainCmd.value = '';
-            aiEnabled = false; 
-            clearInterval(swInt); clearInterval(trInt);
-        }
-
-        function updateLA() {
-            const now = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour12: false });
-            document.getElementById('la-timer').innerText = `LA TIME: ${now}`;
-        }
-        setInterval(updateLA, 1000); updateLA();
-
-        // 1. CHAT (52015 激活)
+        // --- 1. CHAT (动画版) ---
         function initChat() {
             appContent.innerHTML = `
-                <div id="chat-log"><div class="msg ai-msg">Console ready...</div></div>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="chat-in" placeholder="..." style="flex:1;">
-                    <button id="chat-send">Send</button>
+                <div id="chat-log"><div class="msg ai-msg" style="animation-delay:0.1s">Waiting for 52015...</div></div>
+                <div style="display:flex; gap:12px;">
+                    <input type="text" id="chat-in" placeholder="Message..." style="flex:1; border-radius:8px;">
+                    <button id="chat-send">SEND</button>
                 </div>`;
             const input = document.getElementById('chat-in');
             const log = document.getElementById('chat-log');
@@ -132,26 +164,22 @@
                 const uMsg = document.createElement('div'); uMsg.className='msg user-msg'; uMsg.innerText=m;
                 log.appendChild(uMsg); input.value='';
 
-                if(m === '52015') {
-                    aiEnabled = true;
-                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg'; aMsg.innerText="System: AI Mode Activated. Hello, user.";
+                setTimeout(() => {
+                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg';
+                    if(m === '52015') { aiActive = true; aMsg.innerText="AI Mode Enabled."; }
+                    else if(aiActive) { aMsg.innerText="I am processing: " + m; }
+                    else { aMsg.innerText="Error: Access denied."; }
                     log.appendChild(aMsg);
-                } else if(aiEnabled) {
-                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg'; aMsg.innerText="AI: Processing... '" + m + "'";
-                    log.appendChild(aMsg);
-                } else {
-                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg'; aMsg.innerText="Unauthorized. Code required.";
-                    log.appendChild(aMsg);
-                }
-                log.scrollTop = log.scrollHeight;
+                    log.scrollTop = log.scrollHeight;
+                }, 600);
             };
             document.getElementById('chat-send').onclick = send;
             input.onkeypress = (e) => { if(e.key==='Enter') send(); };
         }
 
-        // 2. VOCABULARY
+        // --- 2. VOCABULARY (动画列表) ---
         function initVocab() {
-            appContent.innerHTML = `<input type="text" id="v-in" placeholder="Search..." style="width:100%;"><div id="v-res"></div>`;
+            appContent.innerHTML = `<input type="text" id="v-in" placeholder="Type a word..." style="width:100%; font-size:1.4rem; border-radius:8px;"><div id="v-res"></div>`;
             const vin = document.getElementById('v-in'); vin.focus();
             vin.onkeypress = async (e) => {
                 if(e.key !== 'Enter') return;
@@ -160,21 +188,18 @@
                 try {
                     const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
                     const data = await r.json();
-                    if(!data[0]) throw "err";
                     const m = data[0].meanings[0];
-                    const def = m.definitions[0];
                     res.innerHTML = `
-                        <h2>${word}</h2>
-                        <div class="res-section"><strong>[${m.partOfSpeech}]</strong></div>
-                        <div class="res-section"><small>DEF:</small> ${def.definition}</div>
-                        <div class="res-section"><small>SYN:</small> ${m.synonyms.slice(0,2).join(', ') || 'excellent, fine'}</div>
-                        <div class="res-section"><small>ANT:</small> ${m.antonyms.slice(0,2).join(', ') || 'common, poor'}</div>
-                        <div class="res-section" style="font-style:italic">" ${def.example || 'This is a '+word+' example.'} "</div>`;
-                } catch { res.innerHTML = "Word not found."; }
+                        <h2 style="font-size:3rem; margin:20px 0; color:#fff;">${word}</h2>
+                        <div class="res-section" style="animation-delay:0.1s"><strong>[${m.partOfSpeech}]</strong></div>
+                        <div class="res-section" style="animation-delay:0.2s"><small>DEFINITION:</small><br>${m.definitions[0].definition}</div>
+                        <div class="res-section" style="animation-delay:0.3s"><small>SYNONYMS:</small> ${m.synonyms.slice(0,3).join(', ') || 'N/A'}</div>
+                        <div class="res-section" style="animation-delay:0.4s; font-style:italic; opacity:0.6;">"${m.definitions[0].example || 'No example available.'}"</div>`;
+                } catch { res.innerHTML = "Not found."; }
             };
         }
 
-        // 3. CALCULATOR
+        // --- 3. CALCULATOR (反馈增强) ---
         let calcExp = "";
         function initCalc() {
             appContent.innerHTML = `
@@ -186,101 +211,113 @@
                         </div>
                     </div>
                     <div style="display:flex; flex-direction:column;">
-                        <canvas id="c-pad" width="600" height="450"></canvas>
-                        <button onclick="clearCanvas('c-pad')" style="margin-top:10px;">Clear Pad</button>
+                        <canvas id="c-pad" width="650" height="480"></canvas>
+                        <button onclick="clearCanvas('c-pad')" style="margin-top:15px;">CLEAR SCRATCHPAD</button>
                     </div>
                 </div>`;
             initSketch('c-pad');
         }
         window.doCalc = (k) => {
             const out = document.getElementById('c-out');
+            out.style.transform = "scale(1.05)";
+            setTimeout(() => out.style.transform = "scale(1)", 100);
             if(k === '=') { try { calcExp = eval(calcExp.replace('sqrt','Math.sqrt').replace('sin','Math.sin').replace('cos','Math.cos')); } catch { calcExp = "Error"; } }
             else if(k === 'C') calcExp = ""; else calcExp += k;
             out.innerText = calcExp || "0";
         };
 
-        // 4. DRAWING
+        // --- 4. DRAWING (高级工具栏) ---
         function initDrawing() {
             appContent.innerHTML = `
                 <div class="draw-bar">
-                    <input type="color" id="d-col" value="#a0a0a0" style="width:30px;height:30px;border:none;background:none;">
-                    <button onclick="currentMode='pen'">Pen</button>
-                    <button onclick="currentMode='eraser'">Eraser</button>
-                    <input type="range" id="d-sz" min="1" max="50" value="2">
-                    <button onclick="undo()">Undo</button>
-                    <button onclick="redo()">Redo</button>
-                    <button onclick="clearCanvas('d-can')">Clear</button>
-                    <button onclick="saveD()">Save</button>
+                    <input type="color" id="d-col" value="#ffffff">
+                    <button onclick="currentMode='pen'">PEN</button>
+                    <button onclick="currentMode='eraser'">ERASER</button>
+                    <input type="range" id="d-sz" min="1" max="60" value="2">
+                    <div style="flex:1"></div>
+                    <button onclick="undo()">UNDO</button>
+                    <button onclick="clearCanvas('d-can')">CLEAR</button>
+                    <button onclick="saveD()" style="background:#fff; color:#000;">SAVE</button>
                 </div>
-                <canvas id="d-can" width="1050" height="500"></canvas>`;
+                <canvas id="d-can" width="1050" height="520"></canvas>`;
             initSketch('d-can', true);
         }
 
-        // 5. TIMING
+        // --- 5. TIMING (平滑切换) ---
         function initTiming() {
             appContent.innerHTML = `
                 <div class="timing-grid">
                     <div class="time-box"><h3>STOPWATCH</h3><div id="sw" class="big-clock">00:00:00</div>
-                        <button onclick="swFunc('start')">Start</button><button onclick="swFunc('stop')">Stop</button><button onclick="swFunc('reset')">Reset</button>
+                        <button onclick="swFunc('start')">START</button><button onclick="swFunc('stop')">STOP</button><button onclick="swFunc('reset')">RESET</button>
                     </div>
                     <div class="time-box"><h3>TIMER</h3><div id="tr" class="big-clock">00:00:00</div>
-                        <input type="number" id="tr-in" placeholder="Mins" style="width:80px;text-align:center;">
-                        <button onclick="trFunc('start')">Start</button><button onclick="trFunc('reset')">Reset</button>
+                        <input type="number" id="tr-in" placeholder="MINS" style="width:100px; text-align:center; margin-bottom:10px;">
+                        <br><button onclick="trFunc('start')">START TIMER</button>
                     </div>
                 </div>`;
         }
         window.swFunc = (a) => {
             const d = document.getElementById('sw');
-            if(a==='start'){ if(swInt)return; swInt=setInterval(()=>{swMs+=1000; let t=new Date(swMs); d.innerText=t.toISOString().substr(11,8)},1000); }
+            if(a==='start'){ if(swInt)return; swInt=setInterval(()=>{swMs+=1000; d.innerText=new Date(swMs).toISOString().substr(11,8)},1000); }
             else if(a==='stop'){ clearInterval(swInt); swInt=null; }
             else { clearInterval(swInt); swInt=null; swMs=0; d.innerText="00:00:00"; }
         };
         window.trFunc = (a) => {
             const d = document.getElementById('tr');
-            if(a==='start'){
-                clearInterval(trInt); trSec = (parseInt(document.getElementById('tr-in').value)||0)*60;
-                trInt = setInterval(()=>{
-                    if(trSec<=0){ clearInterval(trInt); alert("Time's up"); return; }
-                    trSec--; let m=Math.floor(trSec/60), s=trSec%60;
-                    d.innerText=`00:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                },1000);
-            } else { clearInterval(trInt); d.innerText="00:00:00"; }
+            clearInterval(trInt); trSec = (parseInt(document.getElementById('tr-in').value)||0)*60;
+            trInt = setInterval(()=>{
+                if(trSec<=0){ clearInterval(trInt); alert("Time's up"); return; }
+                trSec--; let m=Math.floor(trSec/60), s=trSec%60;
+                d.innerText=`00:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            },1000);
         };
 
-        // 6. WEATHER
+        // --- 6. WEATHER (淡入淡出) ---
         function initWeather() {
             let off = 0; const update = () => {
                 const label = off === 0 ? "TODAY" : (off === -1 ? "YESTERDAY" : "TOMORROW");
-                appContent.innerHTML = `<div style="text-align:center;"><h2 style="opacity:0.3;">${label}</h2><div style="font-size:7rem;margin:30px 0;">${22+off}°C</div><p>LOS ANGELES</p>
-                <div style="margin-top:40px;"><button onclick="wMove(-1)">←</button><button onclick="wMove(1)">→</button></div></div>`;
+                appContent.style.opacity = '0';
+                setTimeout(() => {
+                    appContent.innerHTML = `<div style="text-align:center;"><h2 style="opacity:0.3; letter-spacing:5px;">${label}</h2><div style="font-size:8rem; font-weight:100; margin:30px 0; color:#fff;">${22+off}°C</div><p>LOS ANGELES</p>
+                    <div style="margin-top:50px;"><button onclick="wMove(-1)">PREV</button> <button onclick="wMove(1)">NEXT</button></div></div>`;
+                    appContent.style.opacity = '1';
+                }, 200);
             };
             window.wMove = (n) => { off=Math.max(-1, Math.min(1, off+n)); update(); }; update();
         }
 
-        // --- SHARED DRAW LOGIC ---
+        // --- 全局辅助功能 ---
         function initSketch(id, isFull = false) {
             const c = document.getElementById(id), ctx = c.getContext('2d');
             let drawing = false;
-            drawHistory = []; drawStep = -1;
-            const pushS = () => { if(!isFull) return; drawStep++; if(drawStep < drawHistory.length) drawHistory.length = drawStep; drawHistory.push(c.toDataURL()); };
-            if(isFull) pushS();
+            if(isFull) { drawHistory = [c.toDataURL()]; drawStep = 0; }
             
-            c.onmousedown = (e) => { drawing = true; ctx.beginPath(); const r = c.getBoundingClientRect(); ctx.moveTo(e.clientX - r.left, e.clientY - r.top); };
-            c.onmouseup = () => { if(drawing && isFull) pushS(); drawing = false; };
+            c.onmousedown = (e) => { 
+                drawing = true; ctx.beginPath(); 
+                const r = c.getBoundingClientRect(); 
+                ctx.moveTo(e.clientX - r.left, e.clientY - r.top); 
+            };
+            c.onmouseup = () => { 
+                if(drawing && isFull) { drawStep++; drawHistory.push(c.toDataURL()); }
+                drawing = false; 
+            };
             c.onmousemove = (e) => {
                 if(!drawing) return; const r = c.getBoundingClientRect();
                 ctx.lineWidth = isFull ? document.getElementById('d-sz').value : 2;
                 ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-                if(isFull && currentMode==='eraser') ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--input-bg');
-                else ctx.strokeStyle = isFull ? document.getElementById('d-col').value : '#555';
+                ctx.strokeStyle = (isFull && currentMode==='eraser') ? '#0d0d0d' : (isFull ? document.getElementById('d-col').value : '#444');
                 ctx.lineTo(e.clientX - r.left, e.clientY - r.top); ctx.stroke();
             };
 
             window.undo = () => { if(drawStep>0){ drawStep--; let i=new Image(); i.src=drawHistory[drawStep]; i.onload=()=> {ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0);}}; };
-            window.redo = () => { if(drawStep<drawHistory.length-1){ drawStep++; let i=new Image(); i.src=drawHistory[drawStep]; i.onload=()=> {ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0);}}; };
-            window.clearCanvas = (cid) => { document.getElementById(cid).getContext('2d').clearRect(0,0,c.width,c.height); if(isFull){drawHistory=[]; drawStep=-1; pushS();} };
+            window.clearCanvas = (cid) => { document.getElementById(cid).getContext('2d').clearRect(0,0,c.width,c.height); if(isFull) {drawHistory=[c.toDataURL()]; drawStep=0;} };
             window.saveD = () => { const l=document.createElement('a'); l.download='draw.png'; l.href=c.toDataURL(); l.click(); };
         }
+
+        setInterval(() => {
+            const now = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour12: false });
+            document.getElementById('la-timer').innerText = `LA TIME ${now}`;
+        }, 1000);
     </script>
 </body>
 </html>
