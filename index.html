@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist OS v9.Bilingual</title>
+    <title>Minimalist OS v10.Intro</title>
     <style>
         :root {
             --bg: #0d0d0d;
@@ -42,22 +42,25 @@
             padding: 10px 18px; transition: var(--transition); border-radius: 4px;
         }
         button:hover { background: #333; color: #fff; transform: translateY(-2px); }
-        button:active { transform: scale(0.95); }
 
         .container { 
             width: 95%; max-width: 1100px; height: 85vh; display: flex; flex-direction: column; 
             animation: fadeInSlide 0.6s ease forwards; 
         }
 
+        /* Introduction Page Styles */
+        .intro-text { text-align: center; max-width: 600px; line-height: 1.8; }
+        .intro-title { font-size: 3.5rem; font-weight: 100; color: #fff; margin-bottom: 20px; letter-spacing: -1px; }
+
         .res-section, .msg { animation: fadeInSlide 0.5s ease both; margin-bottom: 10px; }
         .zh-text { color: #666; font-size: 0.95rem; margin-top: 4px; }
 
         .calc-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 40px; height: 100%; }
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .calc-display { width: 100%; height: 70px; background: var(--input-bg); border: 1px solid var(--border); color: #fff; text-align: right; font-size: 2rem; padding: 15px; margin-bottom: 15px; border-radius: 4px; transition: transform 0.1s; }
+        .calc-display { width: 100%; height: 70px; background: var(--input-bg); border: 1px solid var(--border); color: #fff; text-align: right; font-size: 2rem; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
 
         .draw-bar { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; }
-        canvas { background: #000; border: 1px solid var(--border); border-radius: 4px; cursor: crosshair; }
+        canvas { background: #000; border: 1px solid var(--border); border-radius: 4px; }
 
         .time-box { border: 1px solid var(--border); padding: 40px; text-align: center; background: rgba(255,255,255,0.01); flex: 1; }
         .big-clock { font-size: 5rem; font-weight: 100; color: #fff; margin: 25px 0; font-variant-numeric: tabular-nums; }
@@ -73,7 +76,7 @@
     <div id="la-timer">LA TIME 00:00:00</div>
 
     <div id="home-screen" class="screen">
-        <div style="margin-bottom: 30px; opacity: 0.4; letter-spacing: 4px; font-size: 11px;">SYSTEM READY</div>
+        <div style="margin-bottom: 30px; opacity: 0.4; letter-spacing: 4px; font-size: 11px;">SYSTEM ONLINE</div>
         <input type="text" id="main-cmd" placeholder="Enter Command..." autocomplete="off" style="width: 350px; text-align: center; font-size: 1.1rem; border-radius: 30px;">
     </div>
 
@@ -94,7 +97,7 @@
         mainCmd.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const val = mainCmd.value.toLowerCase().trim();
-                const apps = ['vocabulary', 'calculator', 'drawing', 'timing', 'weather', 'chat'];
+                const apps = ['vocabulary', 'calculator', 'drawing', 'timing', 'weather', 'chat', 'hello'];
                 if (apps.includes(val)) launchApp(val);
             }
         });
@@ -124,7 +127,8 @@
 
         function renderApp(type) {
             appContent.innerHTML = '';
-            if(type === 'vocabulary') initVocab();
+            if(type === 'hello') initHello();
+            else if(type === 'vocabulary') initVocab();
             else if(type === 'calculator') initCalc();
             else if(type === 'drawing') initDrawing();
             else if(type === 'timing') initTiming();
@@ -132,7 +136,26 @@
             else if(type === 'chat') initChat();
         }
 
-        // --- 1. VOCABULARY (添加中文译文) ---
+        // --- 0. HELLO (INTRO INTERFACE) ---
+        function initHello() {
+            appContent.style.justifyContent = "center";
+            appContent.style.alignItems = "center";
+            appContent.innerHTML = `
+                <div class="intro-text">
+                    <div class="intro-title">Minimalist Tools</div>
+                    <p style="opacity:0.6; letter-spacing:1px; margin-bottom:40px;">VERSION 10.0 // LOS ANGELES</p>
+                    <div class="res-section" style="animation-delay:0.2s">
+                        This is a private digital workspace designed for deep focus. 
+                        A sanctuary where utility meets aesthetics, stripped of all unnecessary noise.
+                    </div>
+                    <div class="res-section" style="animation-delay:0.4s; margin-top:20px; font-size:0.9rem; opacity:0.5;">
+                        Available commands: vocabulary, calculator, drawing, timing, weather, chat.
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 1. VOCABULARY ---
         async function getZH(text) {
             try {
                 const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|zh-CN`);
@@ -140,8 +163,9 @@
                 return data.responseData.translatedText;
             } catch { return ""; }
         }
-
         function initVocab() {
+            appContent.style.justifyContent = "flex-start";
+            appContent.style.alignItems = "stretch";
             appContent.innerHTML = `<input type="text" id="v-in" placeholder="Search word..." style="width:100%; font-size:1.4rem;"><div id="v-res"></div>`;
             const vin = document.getElementById('v-in'); vin.focus();
             vin.onkeypress = async (e) => {
@@ -154,31 +178,23 @@
                     const m = data[0].meanings[0];
                     const def = m.definitions[0].definition;
                     const example = m.definitions[0].example || "";
-
-                    // 获取中文翻译
                     const zhDef = await getZH(def);
                     const zhEx = example ? await getZH(example) : "";
-
                     res.innerHTML = `
                         <h2 style="font-size:3rem; margin:20px 0; color:#fff;">${word}</h2>
                         <div class="res-section" style="animation-delay:0.1s"><strong>[${m.partOfSpeech}]</strong></div>
-                        <div class="res-section" style="animation-delay:0.2s">
-                            <small>DEFINITION:</small><br>${def}
-                            <div class="zh-text">${zhDef}</div>
-                        </div>
-                        <div class="res-section" style="animation-delay:0.3s">
-                            <small>EXAMPLE:</small><br>
-                            <span style="font-style:italic; opacity:0.8;">${example || 'No example available.'}</span>
-                            ${zhEx ? `<div class="zh-text">${zhEx}</div>` : ''}
-                        </div>`;
+                        <div class="res-section" style="animation-delay:0.2s"><small>DEFINITION:</small><br>${def}<div class="zh-text">${zhDef}</div></div>
+                        <div class="res-section" style="animation-delay:0.3s"><small>EXAMPLE:</small><br><span style="font-style:italic; opacity:0.8;">${example || 'N/A'}</span>${zhEx ? `<div class="zh-text">${zhEx}</div>` : ''}</div>`;
                 } catch { res.innerHTML = "Not found."; }
             };
         }
 
-        // --- 2. CHAT (保留你的特定逻辑) ---
+        // --- 2. CHAT (保留特定逻辑) ---
         function initChat() {
+            appContent.style.justifyContent = "flex-start";
+            appContent.style.alignItems = "stretch";
             appContent.innerHTML = `
-                <div id="chat-log"><div class="msg ai-msg">Identity Check Required.</div></div>
+                <div id="chat-log"><div class="msg ai-msg">Waiting for identification...</div></div>
                 <div style="display:flex; gap:12px;">
                     <input type="text" id="chat-in" placeholder="Query..." style="flex:1;">
                     <button id="chat-send">SEND</button>
@@ -186,12 +202,10 @@
             const input = document.getElementById('chat-in');
             const log = document.getElementById('chat-log');
             input.focus();
-
             const send = () => {
                 const m = input.value.trim(); if(!m) return;
                 const uMsg = document.createElement('div'); uMsg.className='msg user-msg'; uMsg.innerText=m;
                 log.appendChild(uMsg); input.value='';
-
                 setTimeout(() => {
                     const aMsg = document.createElement('div'); aMsg.className='msg ai-msg';
                     if (m === 'Jefferson') aMsg.innerText = "I love you Presley";
@@ -206,30 +220,30 @@
             input.onkeypress = (e) => { if(e.key==='Enter') send(); };
         }
 
-        // --- 其他功能 (计算器, 绘图, 计时, 天气 - 保持原样) ---
+        // --- 其他辅助功能保持不变 ---
         let calcExp = "";
         function initCalc() {
+            appContent.style.justifyContent = "flex-start";
             appContent.innerHTML = `<div class="calc-wrapper"><div><div id="c-out" class="calc-display">0</div><div class="calc-grid">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k => `<button onclick="doCalc('${k}')">${k.replace('Math.','')}</button>`).join('')}</div></div><div style="display:flex; flex-direction:column;"><canvas id="c-pad" width="650" height="480"></canvas><button onclick="clearCanvas('c-pad')" style="margin-top:15px;">CLEAR PAD</button></div></div>`;
             initSketch('c-pad');
         }
         window.doCalc = (k) => {
-            const out = document.getElementById('c-out'); out.style.transform = "scale(1.05)"; setTimeout(() => out.style.transform = "scale(1)", 100);
+            const out = document.getElementById('c-out');
             if(k === '=') { try { calcExp = eval(calcExp); } catch { calcExp = "Error"; } }
             else if(k === 'C') calcExp = ""; else calcExp += k;
             out.innerText = calcExp || "0";
         };
-
         function initDrawing() {
+            appContent.style.justifyContent = "flex-start";
             appContent.innerHTML = `<div class="draw-bar"><input type="color" id="d-col" value="#ffffff"><button onclick="currentMode='pen'">PEN</button><button onclick="currentMode='eraser'">ERASER</button><input type="range" id="d-sz" min="1" max="60" value="3"><div style="flex:1"></div><button onclick="undo()">UNDO</button><button onclick="clearCanvas('d-can')">CLEAR</button><button onclick="saveD()" style="background:#fff; color:#000;">SAVE</button></div><canvas id="d-can" width="1050" height="520"></canvas>`;
             initSketch('d-can', true);
         }
-
         function initTiming() {
+            appContent.style.justifyContent = "center";
             appContent.innerHTML = `<div style="display:flex; gap:40px; width:100%;"><div class="time-box"><h3>STOPWATCH</h3><div id="sw" class="big-clock">00:00:00</div><button onclick="swFunc('start')">START</button><button onclick="swFunc('stop')">STOP</button><button onclick="swFunc('reset')">RESET</button></div><div class="time-box"><h3>TIMER</h3><div id="tr" class="big-clock">00:00:00</div><input type="number" id="tr-in" placeholder="Mins" style="width:100px; text-align:center; margin-bottom:15px;"><br><button onclick="trFunc('start')">START</button></div></div>`;
         }
         window.swFunc=(a)=>{const d=document.getElementById('sw');if(a==='start'){if(swInt)return;swInt=setInterval(()=>{swMs+=1000;d.innerText=new Date(swMs).toISOString().substr(11,8)},1000);}else if(a==='stop'){clearInterval(swInt);swInt=null;}else{clearInterval(swInt);swInt=null;swMs=0;d.innerText="00:00:00";}};
         window.trFunc=(a)=>{const d=document.getElementById('tr');clearInterval(trInt);trSec=(parseInt(document.getElementById('tr-in').value)||0)*60;trInt=setInterval(()=>{if(trSec<=0){clearInterval(trInt);alert("Time's up!");return;}trSec--;let m=Math.floor(trSec/60),s=trSec%60;d.innerText=`00:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;},1000);};
-
         function initWeather() {
             let off = 0; const update = () => {
                 const label = off === 0 ? "TODAY" : (off === -1 ? "YESTERDAY" : "TOMORROW");
@@ -240,7 +254,6 @@
             };
             window.wMove = (n) => { off=Math.max(-1, Math.min(1, off+n)); update(); }; update();
         }
-
         function initSketch(id, isFull = false) {
             const c = document.getElementById(id), ctx = c.getContext('2d');
             let drawing = false; if(isFull) { drawHistory = [c.toDataURL()]; drawStep = 0; }
@@ -251,7 +264,6 @@
             window.clearCanvas = (cid) => { const tc = document.getElementById(cid); tc.getContext('2d').clearRect(0,0,tc.width,tc.height); if(isFull) { drawHistory=[tc.toDataURL()]; drawStep=0; } };
             window.saveD = () => { const l=document.createElement('a'); l.download='sketch.png'; l.href=c.toDataURL(); l.click(); };
         }
-
         setInterval(() => {
             const now = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour12: false });
             document.getElementById('la-timer').innerText = `LA TIME ${now}`;
