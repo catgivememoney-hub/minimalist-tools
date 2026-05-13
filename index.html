@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist Hub v5</title>
+    <title>Minimalist Hub v5.Final</title>
     <style>
         :root {
             --bg: #121212;
@@ -115,10 +115,10 @@
         }
         setInterval(updateLA, 1000); updateLA();
 
-        // --- 1. CHAT (彩蛋功能) ---
+        // 1. CHAT (52015 激活)
         function initChat() {
             appContent.innerHTML = `
-                <div id="chat-log"><div class="msg ai-msg">Waiting for activation or command...</div></div>
+                <div id="chat-log"><div class="msg ai-msg">Console ready...</div></div>
                 <div style="display:flex; gap:10px;">
                     <input type="text" id="chat-in" placeholder="..." style="flex:1;">
                     <button id="chat-send">Send</button>
@@ -134,13 +134,13 @@
 
                 if(m === '52015') {
                     aiEnabled = true;
-                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg'; aMsg.innerText="System: AI Mode Activated.";
+                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg'; aMsg.innerText="System: AI Mode Activated. Hello, user.";
                     log.appendChild(aMsg);
                 } else if(aiEnabled) {
-                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg'; aMsg.innerText="Gemini: I am now processing your request...";
+                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg'; aMsg.innerText="AI: Processing... '" + m + "'";
                     log.appendChild(aMsg);
                 } else {
-                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg'; aMsg.innerText="Error: Unauthorized access. Please enter code.";
+                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg'; aMsg.innerText="Unauthorized. Code required.";
                     log.appendChild(aMsg);
                 }
                 log.scrollTop = log.scrollHeight;
@@ -149,7 +149,7 @@
             input.onkeypress = (e) => { if(e.key==='Enter') send(); };
         }
 
-        // --- 2. VOCABULARY ---
+        // 2. VOCABULARY
         function initVocab() {
             appContent.innerHTML = `<input type="text" id="v-in" placeholder="Search..." style="width:100%;"><div id="v-res"></div>`;
             const vin = document.getElementById('v-in'); vin.focus();
@@ -174,7 +174,7 @@
             };
         }
 
-        // --- 3. CALCULATOR + PAD ---
+        // 3. CALCULATOR
         let calcExp = "";
         function initCalc() {
             appContent.innerHTML = `
@@ -199,7 +199,7 @@
             out.innerText = calcExp || "0";
         };
 
-        // --- 4. DRAWING (修复 Undo/Eraser) ---
+        // 4. DRAWING
         function initDrawing() {
             appContent.innerHTML = `
                 <div class="draw-bar">
@@ -216,7 +216,7 @@
             initSketch('d-can', true);
         }
 
-        // --- 5. TIMING ---
+        // 5. TIMING
         function initTiming() {
             appContent.innerHTML = `
                 <div class="timing-grid">
@@ -247,7 +247,7 @@
             } else { clearInterval(trInt); d.innerText="00:00:00"; }
         };
 
-        // --- 6. WEATHER ---
+        // 6. WEATHER
         function initWeather() {
             let off = 0; const update = () => {
                 const label = off === 0 ? "TODAY" : (off === -1 ? "YESTERDAY" : "TOMORROW");
@@ -264,6 +264,7 @@
             drawHistory = []; drawStep = -1;
             const pushS = () => { if(!isFull) return; drawStep++; if(drawStep < drawHistory.length) drawHistory.length = drawStep; drawHistory.push(c.toDataURL()); };
             if(isFull) pushS();
+            
             c.onmousedown = (e) => { drawing = true; ctx.beginPath(); const r = c.getBoundingClientRect(); ctx.moveTo(e.clientX - r.left, e.clientY - r.top); };
             c.onmouseup = () => { if(drawing && isFull) pushS(); drawing = false; };
             c.onmousemove = (e) => {
@@ -274,6 +275,7 @@
                 else ctx.strokeStyle = isFull ? document.getElementById('d-col').value : '#555';
                 ctx.lineTo(e.clientX - r.left, e.clientY - r.top); ctx.stroke();
             };
+
             window.undo = () => { if(drawStep>0){ drawStep--; let i=new Image(); i.src=drawHistory[drawStep]; i.onload=()=> {ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0);}}; };
             window.redo = () => { if(drawStep<drawHistory.length-1){ drawStep++; let i=new Image(); i.src=drawHistory[drawStep]; i.onload=()=> {ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0);}}; };
             window.clearCanvas = (cid) => { document.getElementById(cid).getContext('2d').clearRect(0,0,c.width,c.height); if(isFull){drawHistory=[]; drawStep=-1; pushS();} };
