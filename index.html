@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist OS v11.Audio</title>
+    <title>Minimalist OS v11.2.Fixed</title>
     <style>
         :root {
             --bg: #0d0d0d;
@@ -56,10 +56,10 @@
 
         .calc-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 40px; height: 100%; }
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .calc-display { width: 100%; height: 70px; background: var(--input-bg); border: 1px solid var(--border); color: #fff; text-align: right; font-size: 2rem; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .calc-display { width: 100%; height: 70px; background: var(--input-bg); border: 1px solid var(--border); color: #fff; text-align: right; font-size: 2rem; padding: 15px; margin-bottom: 15px; border-radius: 4px; overflow: hidden;}
 
         .draw-bar { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; }
-        canvas { background: #000; border: 1px solid var(--border); border-radius: 4px; }
+        canvas { background: #000; border: 1px solid var(--border); border-radius: 4px; cursor: crosshair; }
 
         .time-box { border: 1px solid var(--border); padding: 40px; text-align: center; background: rgba(255,255,255,0.01); flex: 1; }
         .big-clock { font-size: 5rem; font-weight: 100; color: #fff; margin: 25px 0; font-variant-numeric: tabular-nums; }
@@ -90,27 +90,16 @@
         const appContent = document.getElementById('app-content');
         const backBtn = document.getElementById('back-btn');
 
-        // 音效配置
+        // 音效系统 (Base64 WAV)
         const clickSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFRm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTdvT19hc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rh");
-        clickSound.volume = 0.2;
-
-        function playKey() {
-            clickSound.currentTime = 0;
-            clickSound.play();
-        }
-
-        // 浏览器要求用户交互后才能播放声音
+        clickSound.volume = 0.15;
+        function playKey() { clickSound.currentTime = 0; clickSound.play().catch(()=>{}); }
         function enableAudio() { document.body.onclick = null; }
-
-        function attachKeySound(el) {
-            if(!el) return;
-            el.addEventListener('input', playKey);
-        }
-
+        function attachKeySound(el) { if(el) el.addEventListener('input', playKey); }
         attachKeySound(mainCmd);
 
         let swInt = null, trInt = null, swMs = 0, trSec = 0;
-        let drawHistory = [], drawStep = -1, currentMode = 'pen';
+        let drawHistory = [], drawStep = -1, currentMode = 'pen', calcExp = "";
 
         mainCmd.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -145,6 +134,8 @@
 
         function renderApp(type) {
             appContent.innerHTML = '';
+            appContent.style.justifyContent = "flex-start";
+            appContent.style.alignItems = "stretch";
             if(type === 'hello') initHello();
             else if(type === 'vocabulary') initVocab();
             else if(type === 'calculator') initCalc();
@@ -154,26 +145,23 @@
             else if(type === 'chat') initChat();
         }
 
+        // --- 0. HELLO ---
         function initHello() {
             appContent.style.justifyContent = "center";
             appContent.style.alignItems = "center";
-            appContent.innerHTML = `<div class="intro-text"><div class="intro-title">Minimalist Tools</div><p style="opacity:0.6; letter-spacing:1px; margin-bottom:40px;">VERSION 11.0 // LOS ANGELES</p><div class="res-section">Designed for deep focus and digital peace.</div></div>`;
+            appContent.innerHTML = `<div class="intro-text"><div class="intro-title">Minimalist Tools</div><p style="opacity:0.6; letter-spacing:1px; margin-bottom:40px;">V11.2 // REFINED EDITION</p><div class="res-section">Stripped of noise. Rebuilt for focus.</div></div>`;
         }
 
+        // --- 1. VOCABULARY (中文译文版) ---
         async function getZH(text) {
             try {
                 const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|zh-CN`);
                 const data = await res.json(); return data.responseData.translatedText;
             } catch { return ""; }
         }
-
         function initVocab() {
-            appContent.style.justifyContent = "flex-start";
-            appContent.style.alignItems = "stretch";
             appContent.innerHTML = `<input type="text" id="v-in" placeholder="Search word..." style="width:100%; font-size:1.4rem;"><div id="v-res"></div>`;
-            const vin = document.getElementById('v-in');
-            vin.focus();
-            attachKeySound(vin);
+            const vin = document.getElementById('v-in'); vin.focus(); attachKeySound(vin);
             vin.onkeypress = async (e) => {
                 if(e.key !== 'Enter') return;
                 const word = vin.value.trim();
@@ -189,13 +177,23 @@
             };
         }
 
+        // --- 2. CALCULATOR (完整版布局) ---
+        function initCalc() {
+            appContent.innerHTML = `<div class="calc-wrapper"><div><div id="c-out" class="calc-display">0</div><div class="calc-grid">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k => `<button onclick="doCalc('${k}')">${k.replace('Math.','')}</button>`).join('')}</div></div><div style="display:flex; flex-direction:column;"><canvas id="c-pad" width="650" height="480"></canvas><button onclick="clearCanvas('c-pad')" style="margin-top:15px;">CLEAR PAD</button></div></div>`;
+            initSketch('c-pad');
+        }
+        window.doCalc = (k) => {
+            const out = document.getElementById('c-out'); playKey();
+            if(k === 'C') calcExp = ""; 
+            else if(k === '=') { try{calcExp=eval(calcExp).toString()}catch{calcExp="Error"} }
+            else calcExp += k;
+            out.innerText = calcExp || "0";
+        };
+
+        // --- 3. CHAT (严格回复逻辑) ---
         function initChat() {
-            appContent.style.justifyContent = "flex-start";
-            appContent.style.alignItems = "stretch";
-            appContent.innerHTML = `<div id="chat-log"><div class="msg ai-msg">Identity Check Ready.</div></div><div style="display:flex; gap:12px;"><input type="text" id="chat-in" placeholder="Query..." style="flex:1;"><button id="chat-send">SEND</button></div>`;
-            const cin = document.getElementById('chat-in');
-            cin.focus();
-            attachKeySound(cin);
+            appContent.innerHTML = `<div id="chat-log"><div class="msg ai-msg">Identity Check Ready.</div></div><div style="display:flex; gap:12px;"><input type="text" id="chat-in" placeholder="Message..." style="flex:1;"><button id="chat-send">SEND</button></div>`;
+            const cin = document.getElementById('chat-in'); cin.focus(); attachKeySound(cin);
             const send = () => {
                 const m = cin.value.trim(); if(!m) return;
                 const log = document.getElementById('chat-log');
@@ -209,30 +207,45 @@
                     else if (m === '16') aMsg.innerText = "sure I do like this one";
                     else aMsg.innerText = "guess who am I";
                     log.appendChild(aMsg); log.scrollTop = log.scrollHeight;
-                }, 500);
+                }, 400);
             };
             document.getElementById('chat-send').onclick = send;
             cin.onkeypress = (e) => { if(e.key==='Enter') send(); };
         }
 
-        // 基础模块 (计算器, 绘图, 计时, 天气)
-        function initCalc() { 
-            appContent.style.justifyContent = "flex-start";
-            appContent.innerHTML = `<div class="calc-wrapper"><div><div id="c-out" class="calc-display">0</div><div class="calc-grid">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k => `<button onclick="doCalc('${k}')">${k.replace('Math.','')}</button>`).join('')}</div></div><div><canvas id="c-pad" width="650" height="480"></canvas></div></div>`;
-            initSketch('c-pad');
+        // --- 4. DRAWING (完整版布局) ---
+        function initDrawing() {
+            appContent.innerHTML = `<div class="draw-bar"><input type="color" id="d-col" value="#ffffff"><button onclick="currentMode='pen'">PEN</button><button onclick="currentMode='eraser'">ERASER</button><input type="range" id="d-sz" min="1" max="60" value="3"><div style="flex:1"></div><button onclick="undo()">UNDO</button><button onclick="clearCanvas('d-can')">CLEAR</button><button onclick="saveD()" style="background:#fff; color:#000;">SAVE</button></div><canvas id="d-can" width="1050" height="520"></canvas>`;
+            initSketch('d-can', true);
         }
-        window.doCalc = (k) => {
-            const out = document.getElementById('c-out'); playKey();
-            if(k === 'C') calcExp = ""; else if(k === '=') try{calcExp=eval(calcExp)}catch{calcExp="Error"} else calcExp += k;
-            out.innerText = calcExp || "0";
-        };
-        function initDrawing() { appContent.innerHTML = `<div class="draw-bar"><input type="color" id="d-col" value="#ffffff"><button onclick="currentMode='pen'">PEN</button><button onclick="currentMode='eraser'">ERASER</button><input type="range" id="d-sz" min="1" max="60" value="3"><button onclick="undo()">UNDO</button><button onclick="clearCanvas('d-can')">CLEAR</button></div><canvas id="d-can" width="1050" height="520"></canvas>`; initSketch('d-can', true); }
-        function initTiming() { appContent.innerHTML = `<div style="display:flex; gap:40px;"><div class="time-box"><h3>STOPWATCH</h3><div id="sw" class="big-clock">00:00:00</div><button onclick="swFunc('start')">START</button><button onclick="swFunc('stop')">STOP</button></div><div class="time-box"><h3>TIMER</h3><div id="tr" class="big-clock">00:00:00</div><input type="number" id="tr-in" placeholder="Mins"><br><button onclick="trFunc('start')">START</button></div></div>`; attachKeySound(document.getElementById('tr-in')); }
-        window.swFunc=(a)=>{if(a==='start'){swInt=setInterval(()=>{swMs+=1000;document.getElementById('sw').innerText=new Date(swMs).toISOString().substr(11,8)},1000)}else{clearInterval(swInt)}};
-        window.trFunc=()=>{trSec=parseInt(document.getElementById('tr-in').value)*60;trInt=setInterval(()=>{if(trSec<=0)clearInterval(trInt);trSec--;let m=Math.floor(trSec/60),s=trSec%60;document.getElementById('tr').innerText=`00:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`},1000)};
-        function initWeather() { let update=()=>{appContent.innerHTML=`<div style="text-align:center;"><h2 style="opacity:0.3;">TODAY</h2><div style="font-size:8rem; color:#fff;">22°C</div><p>LOS ANGELES</p></div>`}; update(); }
-        function initSketch(id, isFull=false) { const c=document.getElementById(id),ctx=c.getContext('2d'); let d=false; if(isFull){drawHistory=[c.toDataURL()];drawStep=0} c.onmousedown=(e)=>{d=true;ctx.beginPath();const r=c.getBoundingClientRect();ctx.moveTo(e.clientX-r.left,e.clientY-r.top)}; c.onmouseup=()=>{if(d&&isFull){drawStep++;drawHistory.push(c.toDataURL())};d=false}; c.onmousemove=(e)=>{if(!d)return;const r=c.getBoundingClientRect();ctx.lineWidth=isFull?document.getElementById('d-sz').value:2;ctx.strokeStyle=isFull?(currentMode==='eraser'?'#0d0d0d':document.getElementById('d-col').value):'#444';ctx.lineTo(e.clientX-r.left,e.clientY-r.top);ctx.stroke()}; window.undo=()=>{if(drawStep>0){drawStep--;let i=new Image();i.src=drawHistory[drawStep];i.onload=()=>ctx.drawImage(i,0,0)}}; window.clearCanvas=(cid)=>{document.getElementById(cid).getContext('2d').clearRect(0,0,1050,520)}; }
-        
+
+        // --- 5. TIMING ---
+        function initTiming() {
+            appContent.style.justifyContent = "center";
+            appContent.innerHTML = `<div style="display:flex; gap:40px; width:100%;"><div class="time-box"><h3>STOPWATCH</h3><div id="sw" class="big-clock">00:00:00</div><button onclick="swFunc('start')">START</button><button onclick="swFunc('stop')">STOP</button><button onclick="swFunc('reset')">RESET</button></div><div class="time-box"><h3>TIMER</h3><div id="tr" class="big-clock">00:00:00</div><input type="number" id="tr-in" placeholder="Mins" style="width:100px; text-align:center; margin-bottom:15px;"><br><button onclick="trFunc('start')">START</button></div></div>`;
+            attachKeySound(document.getElementById('tr-in'));
+        }
+        window.swFunc=(a)=>{const d=document.getElementById('sw');if(a==='start'){if(swInt)return;swInt=setInterval(()=>{swMs+=1000;d.innerText=new Date(swMs).toISOString().substr(11,8)},1000)}else if(a==='stop'){clearInterval(swInt);swInt=null}else{clearInterval(swInt);swInt=null;swMs=0;d.innerText="00:00:00"}};
+        window.trFunc=()=>{const d=document.getElementById('tr');clearInterval(trInt);trSec=(parseInt(document.getElementById('tr-in').value)||0)*60;trInt=setInterval(()=>{if(trSec<=0){clearInterval(trInt);alert("Time's up!");return}trSec--;let m=Math.floor(trSec/60),s=trSec%60;d.innerText=`00:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`},1000)};
+
+        // --- 6. WEATHER ---
+        function initWeather() {
+            appContent.style.justifyContent = "center";
+            appContent.innerHTML = `<div style="text-align:center;"><h2 style="opacity:0.3; letter-spacing:5px;">TODAY</h2><div style="font-size:8rem; font-weight:100; margin:30px 0; color:#fff;">22°C</div><p>LOS ANGELES</p></div>`;
+        }
+
+        // --- SKETCH LOGIC ---
+        function initSketch(id, isFull=false) {
+            const c=document.getElementById(id),ctx=c.getContext('2d');
+            let d=false; if(isFull){drawHistory=[c.toDataURL()];drawStep=0}
+            c.onmousedown=(e)=>{d=true;ctx.beginPath();const r=c.getBoundingClientRect();ctx.moveTo(e.clientX-r.left,e.clientY-r.top)};
+            c.onmouseup=()=>{if(d&&isFull){drawStep++;drawHistory.push(c.toDataURL())};d=false};
+            c.onmousemove=(e)=>{if(!d)return;const r=c.getBoundingClientRect();ctx.lineWidth=isFull?document.getElementById('d-sz').value:2;ctx.lineCap='round';ctx.strokeStyle=isFull?(currentMode==='eraser'?'#0d0d0d':document.getElementById('d-col').value):'#444';ctx.lineTo(e.clientX-r.left,e.clientY-r.top);ctx.stroke()};
+            window.undo=()=>{if(drawStep>0){drawStep--;let i=new Image();i.src=drawHistory[drawStep];i.onload=()=>ctx.drawImage(i,0,0)}};
+            window.clearCanvas=(cid)=>{const tc=document.getElementById(cid);tc.getContext('2d').clearRect(0,0,tc.width,tc.height);if(isFull){drawHistory=[tc.toDataURL()];drawStep=0}};
+            window.saveD=()=>{const l=document.createElement('a');l.download='sketch.png';l.href=c.toDataURL();l.click()};
+        }
+
         setInterval(() => {
             const now = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour12: false });
             document.getElementById('la-timer').innerText = `LA TIME ${now}`;
