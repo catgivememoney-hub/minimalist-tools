@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist OS v7.Full</title>
+    <title>Minimalist OS v8.CustomChat</title>
     <style>
         :root {
             --bg: #0d0d0d;
@@ -49,7 +49,6 @@
             animation: fadeInSlide 0.6s ease forwards; 
         }
 
-        /* App Specific Styles */
         .res-section, .msg { animation: fadeInSlide 0.5s ease both; margin-bottom: 10px; }
         .calc-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 40px; height: 100%; }
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
@@ -72,7 +71,7 @@
     <div id="la-timer">LA TIME 00:00:00</div>
 
     <div id="home-screen" class="screen">
-        <div style="margin-bottom: 30px; opacity: 0.4; letter-spacing: 4px; font-size: 11px;">SYSTEM READY</div>
+        <div style="margin-bottom: 30px; opacity: 0.4; letter-spacing: 4px; font-size: 11px;">SYSTEM SECURE</div>
         <input type="text" id="main-cmd" placeholder="Enter Command..." autocomplete="off" style="width: 350px; text-align: center; font-size: 1.1rem; border-radius: 30px;">
     </div>
 
@@ -88,7 +87,7 @@
         const backBtn = document.getElementById('back-btn');
 
         let swInt = null, trInt = null, swMs = 0, trSec = 0;
-        let drawHistory = [], drawStep = -1, currentMode = 'pen', aiActive = false;
+        let drawHistory = [], drawStep = -1, currentMode = 'pen';
 
         mainCmd.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -117,7 +116,6 @@
                 homeScreen.style.opacity = '1';
                 backBtn.style.display = 'none';
                 mainCmd.value = '';
-                aiActive = false;
                 clearInterval(swInt); clearInterval(trInt);
             }, 300);
         }
@@ -132,9 +130,51 @@
             else if(type === 'chat') initChat();
         }
 
-        // --- 1. VOCABULARY ---
+        // --- 1. CHAT (逻辑更新) ---
+        function initChat() {
+            appContent.innerHTML = `
+                <div id="chat-log"><div class="msg ai-msg">Identity encrypted. Start interaction.</div></div>
+                <div style="display:flex; gap:12px;">
+                    <input type="text" id="chat-in" placeholder="Query..." style="flex:1;">
+                    <button id="chat-send">SEND</button>
+                </div>`;
+            const input = document.getElementById('chat-in');
+            const log = document.getElementById('chat-log');
+            input.focus();
+
+            const send = () => {
+                const m = input.value.trim(); if(!m) return;
+                const uMsg = document.createElement('div'); uMsg.className='msg user-msg'; uMsg.innerText=m;
+                log.appendChild(uMsg); 
+                input.value='';
+
+                setTimeout(() => {
+                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg';
+                    
+                    // 特殊逻辑判断
+                    if (m === 'Jefferson') {
+                        aMsg.innerText = "I love you Presley";
+                    } else if (m === 'Presley') {
+                        aMsg.innerText = "She‘s not here";
+                    } else if (m === '15') {
+                        aMsg.innerText = "basketball will be better after 18";
+                    } else if (m === '16') {
+                        aMsg.innerText = "sure I do like this one";
+                    } else {
+                        aMsg.innerText = "guess who am I";
+                    }
+
+                    log.appendChild(aMsg);
+                    log.scrollTop = log.scrollHeight;
+                }, 500);
+            };
+            document.getElementById('chat-send').onclick = send;
+            input.onkeypress = (e) => { if(e.key==='Enter') send(); };
+        }
+
+        // --- 2. VOCABULARY ---
         function initVocab() {
-            appContent.innerHTML = `<input type="text" id="v-in" placeholder="Search word..." style="width:100%; font-size:1.4rem;"><div id="v-res"></div>`;
+            appContent.innerHTML = `<input type="text" id="v-in" placeholder="Search..." style="width:100%; font-size:1.4rem;"><div id="v-res"></div>`;
             const vin = document.getElementById('v-in'); vin.focus();
             vin.onkeypress = async (e) => {
                 if(e.key !== 'Enter') return;
@@ -144,18 +184,16 @@
                     const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
                     const data = await r.json();
                     const m = data[0].meanings[0];
-                    const def = m.definitions[0];
                     res.innerHTML = `
                         <h2 style="font-size:3rem; margin:20px 0; color:#fff;">${word}</h2>
                         <div class="res-section" style="animation-delay:0.1s"><strong>[${m.partOfSpeech}]</strong></div>
-                        <div class="res-section" style="animation-delay:0.2s"><small>DEFINITION:</small><br>${def.definition}</div>
-                        <div class="res-section" style="animation-delay:0.3s"><small>SYNONYMS:</small> ${m.synonyms.slice(0,3).join(', ') || 'None found'}</div>
-                        <div class="res-section" style="animation-delay:0.4s; font-style:italic; opacity:0.6;">"${def.example || 'Example sentence not available for this entry.'}"</div>`;
+                        <div class="res-section" style="animation-delay:0.2s"><small>DEFINITION:</small><br>${m.definitions[0].definition}</div>
+                        <div class="res-section" style="animation-delay:0.3s; font-style:italic; opacity:0.6;">"${m.definitions[0].example || 'No example available.'}"</div>`;
                 } catch { res.innerHTML = "Not found."; }
             };
         }
 
-        // --- 2. CALCULATOR ---
+        // --- 3. CALCULATOR ---
         let calcExp = "";
         function initCalc() {
             appContent.innerHTML = `
@@ -170,7 +208,6 @@
                         </div>
                     </div>
                     <div style="display:flex; flex-direction:column;">
-                        <div style="font-size:10px; margin-bottom:10px; opacity:0.5; letter-spacing:2px">SCRATCHPAD</div>
                         <canvas id="c-pad" width="650" height="480"></canvas>
                         <button onclick="clearCanvas('c-pad')" style="margin-top:15px;">CLEAR PAD</button>
                     </div>
@@ -185,24 +222,24 @@
             out.innerText = calcExp || "0";
         };
 
-        // --- 3. DRAWING ---
+        // --- 4. DRAWING ---
         function initDrawing() {
             appContent.innerHTML = `
                 <div class="draw-bar">
-                    <input type="color" id="d-col" value="#ffffff" style="width:40px; height:40px; border:none; background:none;">
+                    <input type="color" id="d-col" value="#ffffff">
                     <button onclick="currentMode='pen'">PEN</button>
                     <button onclick="currentMode='eraser'">ERASER</button>
                     <input type="range" id="d-sz" min="1" max="60" value="3">
                     <div style="flex:1"></div>
                     <button onclick="undo()">UNDO</button>
                     <button onclick="clearCanvas('d-can')">CLEAR</button>
-                    <button onclick="saveD()" style="background:#fff; color:#000;">SAVE PNG</button>
+                    <button onclick="saveD()" style="background:#fff; color:#000;">SAVE</button>
                 </div>
                 <canvas id="d-can" width="1050" height="520"></canvas>`;
             initSketch('d-can', true);
         }
 
-        // --- 4. TIMING ---
+        // --- 5. TIMING ---
         function initTiming() {
             appContent.innerHTML = `
                 <div style="display:flex; gap:40px; width:100%;">
@@ -210,8 +247,8 @@
                         <button onclick="swFunc('start')">START</button><button onclick="swFunc('stop')">STOP</button><button onclick="swFunc('reset')">RESET</button>
                     </div>
                     <div class="time-box"><h3>TIMER</h3><div id="tr" class="big-clock">00:00:00</div>
-                        <input type="number" id="tr-in" placeholder="Minutes" style="width:100px; text-align:center; margin-bottom:15px;"><br>
-                        <button onclick="trFunc('start')">SET & START</button>
+                        <input type="number" id="tr-in" placeholder="Mins" style="width:100px; text-align:center; margin-bottom:15px;"><br>
+                        <button onclick="trFunc('start')">START</button>
                     </div>
                 </div>`;
         }
@@ -231,63 +268,29 @@
             },1000);
         };
 
-        // --- 5. WEATHER ---
+        // --- 6. WEATHER ---
         function initWeather() {
             let off = 0;
             const update = () => {
                 const label = off === 0 ? "TODAY" : (off === -1 ? "YESTERDAY" : "TOMORROW");
                 appContent.style.opacity = '0';
                 setTimeout(() => {
-                    appContent.innerHTML = `<div style="text-align:center;"><h2 style="opacity:0.3; letter-spacing:5px;">${label}</h2><div style="font-size:8rem; font-weight:100; margin:30px 0; color:#fff;">${22+off}°C</div><p style="letter-spacing:3px">LOS ANGELES</p>
-                    <div style="margin-top:50px;"><button onclick="wMove(-1)">PREVIOUS</button> <button onclick="wMove(1)">NEXT</button></div></div>`;
+                    appContent.innerHTML = `<div style="text-align:center;"><h2 style="opacity:0.3; letter-spacing:5px;">${label}</h2><div style="font-size:8rem; font-weight:100; margin:30px 0; color:#fff;">${22+off}°C</div><p>LOS ANGELES</p>
+                    <div style="margin-top:50px;"><button onclick="wMove(-1)">PREV</button> <button onclick="wMove(1)">NEXT</button></div></div>`;
                     appContent.style.opacity = '1';
                 }, 200);
             };
             window.wMove = (n) => { off=Math.max(-1, Math.min(1, off+n)); update(); }; update();
         }
 
-        // --- 6. CHAT ---
-        function initChat() {
-            appContent.innerHTML = `
-                <div id="chat-log"><div class="msg ai-msg">Waiting for code 52015...</div></div>
-                <div style="display:flex; gap:12px;">
-                    <input type="text" id="chat-in" placeholder="Message..." style="flex:1;">
-                    <button id="chat-send">SEND</button>
-                </div>`;
-            const input = document.getElementById('chat-in');
-            const log = document.getElementById('chat-log');
-            input.focus();
-
-            const send = () => {
-                const m = input.value.trim(); if(!m) return;
-                const uMsg = document.createElement('div'); uMsg.className='msg user-msg'; uMsg.innerText=m;
-                log.appendChild(uMsg); input.value='';
-                setTimeout(() => {
-                    const aMsg = document.createElement('div'); aMsg.className='msg ai-msg';
-                    if(m === '52015') { aiActive = true; aMsg.innerText="AI Mode Enabled. I am Gemini."; }
-                    else if(aiActive) { aMsg.innerText="Received: " + m + ". All systems operational."; }
-                    else { aMsg.innerText="System: Activation required."; }
-                    log.appendChild(aMsg); log.scrollTop = log.scrollHeight;
-                }, 500);
-            };
-            document.getElementById('chat-send').onclick = send;
-            input.onkeypress = (e) => { if(e.key==='Enter') send(); };
-        }
-
-        // --- GLOBAL SKETCH LOGIC ---
+        // --- SKETCH LOGIC ---
         function initSketch(id, isFull = false) {
             const c = document.getElementById(id), ctx = c.getContext('2d');
             let drawing = false;
             if(isFull) { drawHistory = [c.toDataURL()]; drawStep = 0; }
-            
-            const getPos = (e) => {
-                const r = c.getBoundingClientRect();
-                return [e.clientX - r.left, e.clientY - r.top];
-            };
-
             c.onmousedown = (e) => { 
                 drawing = true; ctx.beginPath(); 
-                const [x, y] = getPos(e); ctx.moveTo(x, y); 
+                const r = c.getBoundingClientRect(); ctx.moveTo(e.clientX - r.left, e.clientY - r.top); 
             };
             c.onmouseup = () => { 
                 if(drawing && isFull) { drawStep++; drawHistory.push(c.toDataURL()); }
@@ -295,18 +298,16 @@
             };
             c.onmousemove = (e) => {
                 if(!drawing) return;
-                const [x, y] = getPos(e);
+                const r = c.getBoundingClientRect();
                 ctx.lineWidth = isFull ? document.getElementById('d-sz').value : 2;
                 ctx.lineCap = 'round'; ctx.lineJoin = 'round';
                 ctx.strokeStyle = (isFull && currentMode==='eraser') ? '#0d0d0d' : (isFull ? document.getElementById('d-col').value : '#444');
-                ctx.lineTo(x, y); ctx.stroke();
+                ctx.lineTo(e.clientX - r.left, e.clientY - r.top); ctx.stroke();
             };
-
             window.undo = () => { if(drawStep>0){ drawStep--; let i=new Image(); i.src=drawHistory[drawStep]; i.onload=()=> {ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0);}}; };
             window.clearCanvas = (cid) => { 
-                const targetCanvas = document.getElementById(cid);
-                targetCanvas.getContext('2d').clearRect(0,0,targetCanvas.width,targetCanvas.height); 
-                if(isFull) { drawHistory=[targetCanvas.toDataURL()]; drawStep=0; } 
+                const tc = document.getElementById(cid); tc.getContext('2d').clearRect(0,0,tc.width,tc.height);
+                if(isFull) { drawHistory=[tc.toDataURL()]; drawStep=0; } 
             };
             window.saveD = () => { const l=document.createElement('a'); l.download='sketch.png'; l.href=c.toDataURL(); l.click(); };
         }
