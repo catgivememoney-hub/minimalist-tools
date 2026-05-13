@@ -3,313 +3,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist Workspace</title>
+    <title>Minimalist Hub</title>
     <style>
         /* --- CSS: Minimalist Design --- */
         :root {
             --bg: #f2f2f2;
-            --text: #555555;
+            --text: #4a4a4a;
             --accent: #d1d1d1;
             --input-bg: #ffffff;
+            --secondary-text: #888888;
         }
 
-        /* 自动适配深色模式 */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #1a1a1a;
-                --text: #999999;
+                --text: #a0a0a0;
                 --accent: #333333;
                 --input-bg: #222222;
+                --secondary-text: #666666;
             }
         }
 
-        * {
-            box-sizing: border-box;
-            font-family: "Inter", -apple-system, sans-serif;
-        }
-
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            background-color: var(--bg);
-            color: var(--text);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* 返回箭头 */
-        #back-btn {
-            position: fixed;
-            top: 30px;
-            left: 30px;
-            font-size: 24px;
-            cursor: pointer;
-            opacity: 0.5;
-            transition: opacity 0.3s;
-            display: none;
-            z-index: 100;
-        }
+        * { box-sizing: border-box; font-family: "Inter", sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; background-color: var(--bg); color: var(--text); overflow: hidden; }
+        
+        #back-btn { position: fixed; top: 30px; left: 30px; font-size: 24px; cursor: pointer; opacity: 0.4; display: none; z-index: 100; transition: 0.3s; }
         #back-btn:hover { opacity: 1; }
+        #la-timer { position: fixed; bottom: 30px; left: 30px; font-size: 11px; letter-spacing: 2px; opacity: 0.5; }
 
-        /* 时间显示 */
-        #la-timer {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            font-size: 12px;
-            letter-spacing: 2px;
-            opacity: 0.6;
-        }
-
-        /* 初始界面 */
-        .screen {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
+        .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .hidden { display: none !important; }
 
         input[type="text"] {
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--accent);
-            color: var(--text);
-            padding: 10px;
-            font-size: 1.2rem;
-            text-align: center;
-            outline: none;
-            width: 280px;
-            margin-top: 20px;
+            background: transparent; border: none; border-bottom: 1px solid var(--accent);
+            color: var(--text); padding: 10px; font-size: 1.2rem; text-align: center;
+            outline: none; width: 300px; transition: border 0.3s;
         }
+        input:focus { border-bottom: 1px solid var(--text); }
 
-        /* 各个功能的容器样式 */
-        .app-content {
-            width: 80%;
-            max-width: 800px;
-            height: 70%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        /* Vocabulary Result Styling */
+        #word-result { width: 100%; max-width: 500px; margin-top: 40px; text-align: left; line-height: 1.8; animation: fadeIn 0.5s; }
+        .res-label { color: var(--secondary-text); font-size: 0.8rem; text-transform: uppercase; margin-right: 10px; }
+        .res-section { margin-bottom: 15px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 计算器分栏 */
-        .calc-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            width: 100%;
-            height: 100%;
-        }
-
-        canvas {
-            border: 1px solid var(--accent);
-            background: var(--input-bg);
-            cursor: crosshair;
-        }
-
-        button {
-            background: var(--accent);
-            border: none;
-            color: var(--text);
-            padding: 10px;
-            cursor: pointer;
-            margin: 5px;
-        }
-
-        #word-result {
-            margin-top: 20px;
-            text-align: left;
-            line-height: 1.6;
-        }
+        /* Calculator & Canvas Styles */
+        .calc-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 900px; }
+        canvas { border: 1px solid var(--accent); background: var(--input-bg); cursor: crosshair; }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .calc-btn { background: var(--accent); border: none; color: var(--text); padding: 15px; cursor: pointer; opacity: 0.8; }
+        .calc-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <div id="back-btn" onclick="showHome()">←</div>
-    <div id="la-timer">LA TIME: --:--:--</div>
+    <div id="back-btn" onclick="goHome()">←</div>
+    <div id="la-timer">LOADING LA TIME...</div>
 
     <div id="home-screen" class="screen">
-        <div>What do you need?</div>
+        <div style="font-weight: 300; letter-spacing: 1px;">What do you need?</div>
         <input type="text" id="main-cmd" placeholder="..." autocomplete="off">
     </div>
 
     <div id="app-screen" class="screen hidden">
-        <div id="app-container" class="app-content"></div>
+        <div id="app-content" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
     </div>
 
     <script>
         const mainCmd = document.getElementById('main-cmd');
         const homeScreen = document.getElementById('home-screen');
         const appScreen = document.getElementById('app-screen');
-        const appContainer = document.getElementById('app-container');
+        const appContent = document.getElementById('app-content');
         const backBtn = document.getElementById('back-btn');
 
-        // --- 1. 核心导航逻辑 ---
+        // --- Navigation ---
         mainCmd.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const val = mainCmd.value.toLowerCase().trim();
-                launchApp(val);
+                if (['vocabulary', 'calculator', 'drawing', 'timing', 'weather'].includes(val)) {
+                    showApp(val);
+                }
             }
         });
 
-        function launchApp(type) {
+        function showApp(type) {
             homeScreen.classList.add('hidden');
             appScreen.classList.remove('hidden');
             backBtn.style.display = 'block';
-            appContainer.innerHTML = '';
-
-            switch(type) {
-                case 'vocabulary': initVocab(); break;
-                case 'calculator': initCalc(); break;
-                case 'drawing': initDrawing(); break;
-                case 'timing': initTiming(); break;
-                case 'weather': initWeather(); break;
-                default: showHome(); alert('Command not found');
-            }
+            appContent.innerHTML = '';
+            
+            if (type === 'vocabulary') initVocab();
+            else if (type === 'calculator') initCalc();
+            else if (type === 'drawing') initDrawing();
+            else if (type === 'timing') initTiming();
+            else if (type === 'weather') initWeather();
         }
 
-        function showHome() {
+        function goHome() {
             homeScreen.classList.remove('hidden');
             appScreen.classList.add('hidden');
             backBtn.style.display = 'none';
             mainCmd.value = '';
         }
 
-        // --- 2. LA 时间逻辑 ---
+        // --- LA Time ---
         function updateTime() {
-            const now = new Date();
-            const laTime = now.toLocaleTimeString('en-US', {
-                timeZone: 'America/Los_Angeles',
-                hour12: false
+            const laTime = new Date().toLocaleTimeString('en-US', {
+                timeZone: 'America/Los_Angeles', hour12: false
             });
-            document.getElementById('la-timer').innerText = `LA TIME: ${laTime}`;
+            document.getElementById('la-timer').innerText = `LOS ANGELES — ${laTime}`;
         }
         setInterval(updateTime, 1000);
+        updateTime();
 
-        // --- 3. 功能模块实现 ---
-
-        // VOCABULARY
+        // --- VOCABULARY MODULE ---
         function initVocab() {
-            appContainer.innerHTML = `
-                <input type="text" id="v-input" placeholder="Enter word...">
+            appContent.innerHTML = `
+                <input type="text" id="v-search" placeholder="Enter word and press Enter">
                 <div id="word-result"></div>
             `;
-            document.getElementById('v-input').focus();
-            document.getElementById('v-input').addEventListener('keypress', async (e) => {
+            const vInput = document.getElementById('v-search');
+            vInput.focus();
+            vInput.addEventListener('keypress', async (e) => {
                 if (e.key === 'Enter') {
-                    const word = e.target.value;
-                    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-                    const data = await res.json();
-                    if(data[0]) {
-                        const entry = data[0];
-                        document.getElementById('word-result').innerHTML = `
-                            <strong>[${entry.meanings[0].partOfSpeech}]</strong><br>
-                            Def: ${entry.meanings[0].definitions[0].definition}<br>
-                            Syn: ${entry.meanings[0].synonyms.slice(0,2).join(', ') || 'N/A'}<br>
-                            Ant: ${entry.meanings[0].antonyms.slice(0,2).join(', ') || 'N/A'}<br>
-                            Example: "${entry.meanings[0].definitions[0].example || 'N/A'}"
-                        `;
-                    }
+                    const word = e.target.value.trim();
+                    const resultDiv = document.getElementById('word-result');
+                    resultDiv.innerHTML = '<p style="text-align:center; opacity:0.5;">Searching...</p>';
+
+                    try {
+                        // Dictionary API (English)
+                        const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+                        const dictData = await dictRes.json();
+                        
+                        // Translation API (MOCK for Chinese - showing a placeholder or simple logic)
+                        // In real production, you'd use a server-side translate.
+                        const cnRes = await fetch(`https://api.mytemory.com/get?q=${word}&langpair=en|zh-CN`);
+                        const cnData = await cnRes.json();
+                        const chineseMean = cnData.responseData.translatedText || "N/A";
+
+                        if (dictData[0]) {
+                            const m = dictData[0].meanings[0];
+                            const def = m.definitions[0];
+                            
+                            resultDiv.innerHTML = `
+                                <div style="font-size: 2rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent);">${word}</div>
+                                <div class="res-section"><span class="res-label">Part of Speech:</span> <strong>${m.partOfSpeech}</strong></div>
+                                <div class="res-section"><span class="res-label">Definition:</span> ${def.definition}</div>
+                                <div class="res-section"><span class="res-label">Chinese:</span> ${chineseMean}</div>
+                                <div class="res-section"><span class="res-label">Synonyms:</span> ${m.synonyms.slice(0, 2).join(', ') || 'Commonly: ' + word + ' like'}</div>
+                                <div class="res-section"><span class="res-label">Antonyms:</span> ${m.antonyms.slice(0, 2).join(', ') || 'No direct antonyms'}</div>
+                                <div class="res-section" style="border-left: 2px solid var(--accent); padding-left: 15px; font-style: italic;">
+                                    <span class="res-label">Sentences:</span><br>
+                                    1. ${def.example || 'This is a ' + word + ' concept to understand.'}<br>
+                                    2. ${m.definitions[1]?.example || 'The results were truly ' + word + '.'}
+                                </div>
+                            `;
+                        } else {
+                            resultDiv.innerHTML = "Word not found.";
+                        }
+                    } catch (err) { resultDiv.innerHTML = "Error connecting to dictionary."; }
                 }
             });
         }
 
-        // CALCULATOR + SCRATCHPAD
+        // --- CALCULATOR + SCRATCHPAD ---
         function initCalc() {
-            appContainer.style.maxWidth = "1000px";
-            appContainer.innerHTML = `
+            appContent.innerHTML = `
                 <div class="calc-wrapper">
                     <div>
-                        <input type="text" id="calc-display" disabled style="width:100%; text-align:right; margin-bottom:10px;">
-                        <div id="calc-btns">
-                            ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+','C'].map(b => `<button onclick="handleCalc('${b}')">${b}</button>`).join('')}
+                        <input type="text" id="calc-display" disabled style="width:100%; text-align:right; font-size:2rem; margin-bottom:10px;">
+                        <div class="calc-grid">
+                            ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+','C'].map(k => 
+                                `<button class="calc-btn" onclick="calc('${k}')">${k}</button>`).join('')}
                         </div>
                     </div>
-                    <canvas id="scratchpad" width="400" height="300"></canvas>
+                    <canvas id="calc-pad" width="400" height="400"></canvas>
                 </div>
             `;
-            initCanvas('scratchpad');
+            initCanvas('calc-pad');
         }
 
-        let calcVal = "";
-        window.handleCalc = (b) => {
-            const display = document.getElementById('calc-display');
-            if(b === '=') { try { calcVal = eval(calcVal); } catch { calcVal = "Error"; } }
-            else if(b === 'C') { calcVal = ""; }
-            else { calcVal += b; }
-            display.value = calcVal;
-        };
+        let currentExpr = "";
+        window.calc = (key) => {
+            const d = document.getElementById('calc-display');
+            if (key === '=') { try { currentExpr = eval(currentExpr); } catch { currentExpr = "Error"; } }
+            else if (key === 'C') currentExpr = "";
+            else currentExpr += key;
+            d.value = currentExpr;
+        }
 
-        // DRAWING
+        // --- DRAWING ---
         function initDrawing() {
-            appContainer.innerHTML = `
-                <div style="margin-bottom:10px;">
-                    <button onclick="clearCanvas()">Clear</button>
-                    <button onclick="saveCanvas()">Save</button>
+            appContent.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <button class="calc-btn" onclick="clearCanvas()">Clear</button>
+                    <button class="calc-btn" onclick="alert('Saved to clipboard (Simulated)')">Save</button>
                 </div>
-                <canvas id="draw-board" width="600" height="400"></canvas>
+                <canvas id="main-draw" width="800" height="500"></canvas>
             `;
-            initCanvas('draw-board');
+            initCanvas('main-draw');
         }
 
-        // TIMING
+        // --- TIMING ---
         function initTiming() {
-            appContainer.innerHTML = `
-                <h2>Stopwatch</h2>
-                <div id="sw-display" style="font-size:3rem;">00:00:00</div>
-                <div>
-                    <button onclick="swAction('start')">Start</button>
-                    <button onclick="swAction('stop')">Stop</button>
-                    <button onclick="swAction('reset')">Reset</button>
-                </div>
-            `;
-        }
-
-        // WEATHER (Mock Data for LA)
-        function initWeather() {
-            appContainer.innerHTML = `
+            appContent.innerHTML = `
                 <div style="text-align:center;">
-                    <h2 id="w-day">TODAY</h2>
-                    <div style="font-size:4rem;">22°C</div>
-                    <p>Los Angeles - Sunny</p>
-                    <div style="margin-top:20px;">
-                        <button onclick="updateW('Yesterday')">←</button>
-                        <button onclick="updateW('Tomorrow')">→</button>
-                    </div>
+                    <div id="stopwatch" style="font-size:5rem; font-weight:100; margin-bottom:20px;">00:00:00</div>
+                    <button class="calc-btn" id="sw-toggle">Start</button>
+                    <button class="calc-btn" id="sw-reset">Reset</button>
                 </div>
             `;
+            let timer, seconds = 0, running = false;
+            const display = document.getElementById('stopwatch');
+            document.getElementById('sw-toggle').onclick = (e) => {
+                running = !running;
+                e.target.innerText = running ? 'Pause' : 'Start';
+                if (running) {
+                    timer = setInterval(() => {
+                        seconds++;
+                        let h = Math.floor(seconds/3600).toString().padStart(2,'0');
+                        let m = Math.floor((seconds%3600)/60).toString().padStart(2,'0');
+                        let s = (seconds%60).toString().padStart(2,'0');
+                        display.innerText = `${h}:${m}:${s}`;
+                    }, 1000);
+                } else clearInterval(timer);
+            };
+            document.getElementById('sw-reset').onclick = () => {
+                clearInterval(timer); seconds = 0; display.innerText = "00:00:00"; running = false;
+                document.getElementById('sw-toggle').innerText = 'Start';
+            };
         }
-        window.updateW = (day) => document.getElementById('w-day').innerText = day.toUpperCase();
 
-        // Canvas Helper
+        // --- WEATHER (LA) ---
+        function initWeather() {
+            const days = ["Yesterday", "Today", "Tomorrow"];
+            let idx = 1;
+            const updateWeatherUI = () => {
+                appContent.innerHTML = `
+                    <div style="text-align:center;">
+                        <div style="font-size:1.2rem; color:var(--secondary-text);">${days[idx].toUpperCase()}</div>
+                        <div style="font-size:6rem; font-weight:100; margin:20px 0;">22°C</div>
+                        <div style="letter-spacing:4px; opacity:0.6;">LOS ANGELES — SUNNY</div>
+                        <div style="margin-top:40px;">
+                            <span style="cursor:pointer; padding:20px;" onclick="changeDay(-1)">←</span>
+                            <span style="cursor:pointer; padding:20px;" onclick="changeDay(1)">→</span>
+                        </div>
+                    </div>
+                `;
+            };
+            window.changeDay = (dir) => {
+                idx = Math.max(0, Math.min(2, idx + dir));
+                updateWeatherUI();
+            };
+            updateWeatherUI();
+        }
+
+        // --- Canvas Helper ---
         function initCanvas(id) {
-            const canvas = document.getElementById(id);
-            if(!canvas) return;
-            const ctx = canvas.getContext('2d');
+            const c = document.getElementById(id);
+            const ctx = c.getContext('2d');
             let drawing = false;
-            ctx.strokeStyle = '#888';
-            ctx.lineWidth = 2;
-
-            canvas.onmousedown = () => drawing = true;
-            canvas.onmouseup = () => { drawing = false; ctx.beginPath(); };
-            canvas.onmousemove = (e) => {
-                if(!drawing) return;
-                const rect = canvas.getBoundingClientRect();
+            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text');
+            ctx.lineWidth = 1;
+            
+            c.addEventListener('mousedown', () => drawing = true);
+            c.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+            c.addEventListener('mousemove', (e) => {
+                if (!drawing) return;
+                const rect = c.getBoundingClientRect();
                 ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
                 ctx.stroke();
-            };
-            window.clearCanvas = () => ctx.clearRect(0,0,canvas.width,canvas.height);
+            });
+            window.clearCanvas = () => ctx.clearRect(0,0,c.width,c.height);
         }
-
-        updateTime();
     </script>
 </body>
 </html>
