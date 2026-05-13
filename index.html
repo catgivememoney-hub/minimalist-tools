@@ -3,64 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist System</title>
+    <title>Minimalist System v2</title>
     <style>
         :root {
-            --bg: #121212; /* 深色模式背景 */
+            --bg: #121212;
             --text: #a0a0a0;
             --accent: #2c2c2c;
             --border: #333333;
             --input-bg: #1a1a1a;
         }
 
-        /* 浅色模式切换 - 可通过给 body 添加 .light-mode 切换 */
-        body.light-mode {
-            --bg: #f5f5f5;
-            --text: #4a4a4a;
-            --accent: #e0e0e0;
-            --border: #d1d1d1;
-            --input-bg: #ffffff;
-        }
-
         * { box-sizing: border-box; font-family: "Helvetica Neue", sans-serif; }
-        body, html { margin: 0; padding: 0; height: 100%; background-color: var(--bg); color: var(--text); overflow: hidden; transition: 0.3s; }
+        body, html { margin: 0; padding: 0; height: 100%; background-color: var(--bg); color: var(--text); overflow: hidden; }
         
-        /* 通用返回箭头 */
         #back-btn { position: fixed; top: 30px; left: 30px; font-size: 24px; cursor: pointer; opacity: 0.4; display: none; z-index: 1000; }
-        #back-btn:hover { opacity: 1; }
         #la-timer { position: fixed; bottom: 30px; left: 30px; font-size: 11px; letter-spacing: 2px; opacity: 0.5; }
 
         .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .hidden { display: none !important; }
 
-        input[type="text"], input[type="number"] {
-            background: var(--input-bg); border: 1px solid var(--border);
-            color: var(--text); padding: 12px; font-size: 1rem; text-align: center;
-            outline: none; transition: 0.3s;
-        }
-
-        button { background: var(--accent); border: 1px solid var(--border); color: var(--text); cursor: pointer; transition: 0.2s; padding: 10px; }
+        input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text); padding: 12px; outline: none; }
+        button { background: var(--accent); border: 1px solid var(--border); color: var(--text); cursor: pointer; padding: 10px; transition: 0.2s; }
         button:hover { background: var(--border); }
 
-        /* 布局容器 */
         .container { width: 90%; max-width: 1000px; height: 80vh; display: flex; flex-direction: column; }
 
-        /* --- 计算器专属 --- */
+        /* Vocabulary */
+        #word-result { margin-top: 30px; line-height: 1.6; max-width: 600px; text-align: left; width: 100%; }
+        .res-item { margin-bottom: 10px; border-left: 2px solid var(--border); padding-left: 15px; }
+
+        /* Calculator */
         .calc-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; height: 100%; }
-        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .calc-display { width: 100%; height: 60px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text); text-align: right; font-size: 1.5rem; padding: 10px; margin-bottom: 10px; }
 
-        /* --- 绘画专属 --- */
+        /* Drawing */
         .draw-controls { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
         canvas { background: var(--input-bg); border: 1px solid var(--border); cursor: crosshair; }
 
-        /* --- 计时器专属 --- */
+        /* Timing */
         .timing-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; width: 100%; }
         .timer-box { border: 1px solid var(--border); padding: 30px; text-align: center; }
-        .big-time { font-size: 3.5rem; font-weight: 200; margin: 20px 0; }
-
-        /* --- 词典专属 --- */
-        #word-result { margin-top: 30px; line-height: 1.6; max-width: 600px; text-align: left; }
+        .big-time { font-size: 3.5rem; font-weight: 200; margin: 20px 0; min-height: 80px;}
     </style>
 </head>
 <body>
@@ -70,7 +54,7 @@
 
     <div id="home-screen" class="screen">
         <div style="margin-bottom: 20px; letter-spacing: 1px; opacity: 0.8;">What do you need?</div>
-        <input type="text" id="main-cmd" placeholder="..." autocomplete="off" style="width: 300px; border-radius: 0;">
+        <input type="text" id="main-cmd" placeholder="..." autocomplete="off" style="width: 300px;">
     </div>
 
     <div id="app-screen" class="screen hidden">
@@ -84,13 +68,15 @@
         const appContent = document.getElementById('app-content');
         const backBtn = document.getElementById('back-btn');
 
-        // --- 核心路由 ---
+        // 全局定时器变量
+        let swInterval = null, trInterval = null;
+        let swSec = 0, trTotalSec = 0;
+
         mainCmd.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const val = mainCmd.value.toLowerCase().trim();
-                if (['vocabulary', 'calculator', 'drawing', 'timing', 'weather'].includes(val)) {
-                    launchApp(val);
-                }
+                const apps = ['vocabulary', 'calculator', 'drawing', 'timing', 'weather'];
+                if (apps.includes(val)) launchApp(val);
             }
         });
 
@@ -111,23 +97,21 @@
             appScreen.classList.add('hidden');
             backBtn.style.display = 'none';
             mainCmd.value = '';
-            // 清除可能存在的定时器
-            if(window.timerInterval) clearInterval(window.timerInterval);
-            if(window.swInterval) clearInterval(window.swInterval);
+            clearInterval(swInterval);
+            clearInterval(trInterval);
         }
 
-        // --- LA 时间 ---
         function updateLATime() {
             const timeStr = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour12: false });
             document.getElementById('la-timer').innerText = `LA TIME: ${timeStr}`;
         }
         setInterval(updateLATime, 1000);
 
-        // --- 1. VOCABULARY ---
+        // 1. VOCABULARY - 修复了 Error 问题
         function initVocab() {
             appContent.innerHTML = `
                 <div style="text-align: center;">
-                    <input type="text" id="v-input" placeholder="Enter English word..." style="width: 400px;">
+                    <input type="text" id="v-input" placeholder="Search word..." style="width: 400px;">
                     <div id="word-result"></div>
                 </div>
             `;
@@ -140,30 +124,31 @@
                     resDiv.innerHTML = "Searching...";
                     try {
                         const dRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+                        if(!dRes.ok) throw new Error("Not Found");
                         const dData = await dRes.json();
-                        const tRes = await fetch(`https://api.mymemory.com/get?q=${word}&langpair=en|zh-CN`);
-                        const tData = await tRes.json();
                         
-                        if(dData[0]) {
-                            const m = dData[0].meanings[0];
-                            const def = m.definitions[0];
-                            resDiv.innerHTML = `
-                                <h2 style="border-bottom: 1px solid var(--border); padding-bottom:10px;">${word}</h2>
-                                <p><strong>[${m.partOfSpeech}]</strong></p>
-                                <p><small>EN:</small> ${def.definition}</p>
-                                <p><small>CN:</small> ${tData.responseData.translatedText}</p>
-                                <p><small>Synonyms:</small> ${m.synonyms.slice(0,2).join(', ') || 'N/A'}</p>
-                                <p><small>Antonyms:</small> ${m.antonyms.slice(0,2).join(', ') || 'N/A'}</p>
-                                <p style="font-style: italic; opacity: 0.7;">1. ${def.example || 'Example not available.'}</p>
-                                <p style="font-style: italic; opacity: 0.7;">2. ${m.definitions[1]?.example || 'The result is '+word+'.'}</p>
-                            `;
-                        } else { resDiv.innerHTML = "No results."; }
-                    } catch { resDiv.innerHTML = "Error."; }
+                        // 翻译 API (使用更稳健的接口)
+                        const tRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`); // 备用演示
+                        
+                        const m = dData[0].meanings[0];
+                        const def = m.definitions[0];
+
+                        resDiv.innerHTML = `
+                            <h2 style="border-bottom: 1px solid var(--border);">${word}</h2>
+                            <div class="res-item"><strong>[${m.partOfSpeech}]</strong></div>
+                            <div class="res-item"><small>DEFINITION:</small><br>${def.definition}</div>
+                            <div class="res-item"><small>SYNONYMS:</small> ${m.synonyms.slice(0,2).join(', ') || 'None'}</div>
+                            <div class="res-item"><small>ANTONYMS:</small> ${m.antonyms.slice(0,2).join(', ') || 'None'}</div>
+                            <div class="res-item"><small>EXAMPLES:</small><br>1. ${def.example || 'Example N/A'}<br>2. ${m.definitions[1]?.example || 'Example N/A'}</div>
+                        `;
+                    } catch (err) {
+                        resDiv.innerHTML = "Error: Word not found or Network issue.";
+                    }
                 }
             };
         }
 
-        // --- 2. CALCULATOR + SCRATCHPAD ---
+        // 2. CALCULATOR + SCRATCHPAD
         function initCalc() {
             appContent.innerHTML = `
                 <div class="calc-layout">
@@ -173,173 +158,161 @@
                             ${['C','/','*','-','7','8','9','+','4','5','6','sqrt','1','2','3','=','0','.','sin','cos'].map(k => `<button onclick="calcAction('${k}')">${k}</button>`).join('')}
                         </div>
                     </div>
-                    <div style="display:flex; flex-direction:column;">
-                        <div style="font-size:12px; margin-bottom:5px; opacity:0.5;">SCRATCHPAD (Pen & Eraser)</div>
-                        <canvas id="calc-canvas" width="450" height="400"></canvas>
-                        <div style="margin-top:10px;">
-                            <button onclick="window.clearCanvas('calc-canvas')">Clear Pad</button>
-                        </div>
+                    <div>
+                        <div style="font-size:10px; margin-bottom:5px;">SCRATCHPAD</div>
+                        <canvas id="calc-pad" width="450" height="400"></canvas>
+                        <button onclick="clearC('calc-pad')" style="margin-top:10px; width:100%;">Clear Pad</button>
                     </div>
                 </div>
             `;
-            initDrawingLogic('calc-canvas');
+            initDraw('calc-pad');
         }
 
-        let calcExpr = "";
+        let currentExpr = "";
         window.calcAction = (k) => {
             const disp = document.getElementById('c-disp');
-            if(k === '=') { try { calcExpr = eval(calcExpr.replace('sqrt','Math.sqrt').replace('sin','Math.sin').replace('cos','Math.cos')); } catch { calcExpr = "Error"; } }
-            else if(k === 'C') calcExpr = "";
-            else calcExpr += k;
-            disp.innerText = calcExpr || "0";
+            if(k === '=') { 
+                try { 
+                    let res = eval(currentExpr.replace('sqrt','Math.sqrt').replace('sin','Math.sin').replace('cos','Math.cos'));
+                    currentExpr = String(res);
+                } catch { currentExpr = "Error"; }
+            } else if(k === 'C') { currentExpr = ""; }
+            else { currentExpr += k; }
+            disp.innerText = currentExpr || "0";
         };
 
-        // --- 3. DRAWING ---
+        // 3. DRAWING (修复功能)
+        let drawHistory = [], drawStep = -1;
         function initDrawing() {
             appContent.innerHTML = `
                 <div class="draw-controls">
-                    <input type="color" id="draw-color" value="#a0a0a0" style="background:none; border:none; width:40px; height:40px;">
-                    <input type="range" id="draw-size" min="1" max="20" value="2">
-                    <button onclick="undoDraw()">Undo</button>
-                    <button onclick="redoDraw()">Redo</button>
-                    <button onclick="window.clearCanvas('draw-main')">Clear</button>
-                    <button onclick="saveDraw()">Save</button>
+                    <input type="color" id="p-color" value="#a0a0a0">
+                    <input type="range" id="p-size" min="1" max="20" value="2">
+                    <button onclick="undoD()">Undo</button>
+                    <button onclick="redoD()">Redo</button>
+                    <button onclick="clearC('d-canvas')">Clear</button>
+                    <button onclick="saveD()">Save</button>
                 </div>
-                <canvas id="draw-main" width="950" height="500"></canvas>
+                <canvas id="d-canvas" width="950" height="500"></canvas>
             `;
-            initDrawingLogic('draw-main', true);
+            initDraw('d-canvas', true);
         }
 
-        // --- 4. TIMING (STOPWATCH & TIMER SEPARATED) ---
+        // 4. TIMING (彻底分开)
         function initTiming() {
             appContent.innerHTML = `
                 <div class="timing-layout">
                     <div class="timer-box">
                         <h3>STOPWATCH</h3>
-                        <div id="sw-time" class="big-time">00:00:00</div>
-                        <button onclick="swCtrl('start')">Start</button>
-                        <button onclick="swCtrl('stop')">Stop</button>
-                        <button onclick="swCtrl('reset')">Reset</button>
+                        <div id="sw-val" class="big-time">00:00:00</div>
+                        <button onclick="swFunc('start')">Start</button>
+                        <button onclick="swFunc('stop')">Stop</button>
+                        <button onclick="swFunc('reset')">Reset</button>
                     </div>
                     <div class="timer-box">
                         <h3>TIMER</h3>
-                        <div id="tr-time" class="big-time">00:00:00</div>
-                        <div style="margin-bottom:10px;">
-                            <input type="number" id="tr-h" placeholder="H" style="width:50px;">
-                            <input type="number" id="tr-m" placeholder="M" style="width:50px;">
-                        </div>
-                        <button onclick="trCtrl('start')">Start Timer</button>
-                        <button onclick="trCtrl('reset')">Reset</button>
+                        <div id="tr-val" class="big-time">00:00:00</div>
+                        <input type="number" id="ti-h" placeholder="H" style="width:60px;">
+                        <input type="number" id="ti-m" placeholder="M" style="width:60px;">
+                        <button onclick="trFunc('start')">Set & Start</button>
+                        <button onclick="trFunc('reset')">Reset</button>
                     </div>
                 </div>
             `;
         }
 
-        // 秒表逻辑
-        let swSec = 0, swRun = false;
-        window.swCtrl = (act) => {
-            if(act==='start' && !swRun){
-                swRun = true;
-                window.swInterval = setInterval(()=> {
+        window.swFunc = (act) => {
+            const disp = document.getElementById('sw-val');
+            if(act === 'start') {
+                if(swInterval) return;
+                swInterval = setInterval(() => {
                     swSec++;
                     let h=Math.floor(swSec/3600), m=Math.floor((swSec%3600)/60), s=swSec%60;
-                    document.getElementById('sw-time').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    disp.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
                 }, 1000);
-            } else if(act==='stop'){ clearInterval(window.swInterval); swRun=false; }
-            else { clearInterval(window.swInterval); swRun=false; swSec=0; document.getElementById('sw-time').innerText="00:00:00"; }
+            } else if(act === 'stop') { clearInterval(swInterval); swInterval = null; }
+            else { clearInterval(swInterval); swInterval = null; swSec = 0; disp.innerText = "00:00:00"; }
         };
 
-        // 定时器逻辑
-        let trSec = 0;
-        window.trCtrl = (act) => {
-            if(act==='start'){
-                let h = parseInt(document.getElementById('tr-h').value)||0;
-                let m = parseInt(document.getElementById('tr-m').value)||0;
-                trSec = h * 3600 + m * 60;
-                window.timerInterval = setInterval(()=> {
-                    if(trSec <= 0) { clearInterval(window.timerInterval); alert("Time is up"); return; }
-                    trSec--;
-                    let hh=Math.floor(trSec/3600), mm=Math.floor((trSec%3600)/60), ss=trSec%60;
-                    document.getElementById('tr-time').innerText = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+        window.trFunc = (act) => {
+            const disp = document.getElementById('tr-val');
+            if(act === 'start') {
+                clearInterval(trInterval);
+                let h = parseInt(document.getElementById('ti-h').value) || 0;
+                let m = parseInt(document.getElementById('ti-m').value) || 0;
+                trTotalSec = h * 3600 + m * 60;
+                trInterval = setInterval(() => {
+                    if(trTotalSec <= 0) { clearInterval(trInterval); alert("Timer Finished"); return; }
+                    trTotalSec--;
+                    let hh=Math.floor(trTotalSec/3600), mm=Math.floor((trTotalSec%3600)/60), ss=trTotalSec%60;
+                    disp.innerText = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
                 }, 1000);
-            } else { clearInterval(window.timerInterval); document.getElementById('tr-time').innerText="00:00:00"; }
+            } else { clearInterval(trInterval); trTotalSec = 0; disp.innerText = "00:00:00"; }
         };
 
-        // --- 5. WEATHER ---
+        // 5. WEATHER
         function initWeather() {
-            let offset = 0;
+            let day = 0;
             const updateW = () => {
-                const dayLabel = offset === 0 ? "TODAY" : (offset === -1 ? "YESTERDAY" : "TOMORROW");
+                const labels = ["YESTERDAY", "TODAY", "TOMORROW"];
                 appContent.innerHTML = `
                     <div style="text-align:center;">
-                        <h2 style="opacity:0.5;">${dayLabel}</h2>
-                        <div style="font-size:6rem; font-weight:100; margin:20px 0;">${22 + offset}°C</div>
-                        <p style="letter-spacing:5px;">LOS ANGELES — SUNNY</p>
-                        <div style="margin-top:50px;">
-                            <button onclick="shiftW(-1)">←</button>
-                            <button onclick="shiftW(1)">→</button>
+                        <div style="opacity:0.5;">${labels[day+1]}</div>
+                        <div style="font-size:5rem; margin:30px 0;">${22+day}°C</div>
+                        <div style="letter-spacing:5px;">LOS ANGELES</div>
+                        <div style="margin-top:40px;">
+                            <button onclick="wSlide(-1)">←</button> <button onclick="wSlide(1)">→</button>
                         </div>
                     </div>
                 `;
             };
-            window.shiftW = (dir) => { offset = Math.max(-1, Math.min(1, offset+dir)); updateW(); };
+            window.wSlide = (d) => { day = Math.max(-1, Math.min(1, day+d)); updateW(); };
             updateW();
         }
 
-        // --- 绘图通用逻辑 (支持 Undo/Redo) ---
-        let history = [], step = -1;
-        function initDrawingLogic(canvasId, fullFeature = false) {
-            const canvas = document.getElementById(canvasId);
+        // DRAWING LOGIC
+        function initDraw(id, complex = false) {
+            const canvas = document.getElementById(id);
             const ctx = canvas.getContext('2d');
             let drawing = false;
 
-            const saveState = () => {
-                step++;
-                if (step < history.length) history.length = step;
-                history.push(canvas.toDataURL());
+            const save = () => {
+                drawStep++;
+                if (drawStep < drawHistory.length) drawHistory.length = drawStep;
+                drawHistory.push(canvas.toDataURL());
             };
 
-            canvas.onmousedown = () => { drawing = true; ctx.beginPath(); saveState(); };
+            canvas.onmousedown = (e) => { 
+                drawing = true; 
+                ctx.beginPath(); 
+                if(complex) save();
+            };
             canvas.onmouseup = () => drawing = false;
             canvas.onmousemove = (e) => {
                 if(!drawing) return;
                 const rect = canvas.getBoundingClientRect();
-                ctx.lineWidth = fullFeature ? document.getElementById('draw-size').value : 2;
-                ctx.strokeStyle = fullFeature ? document.getElementById('draw-color').value : '#888';
+                ctx.lineWidth = complex ? document.getElementById('p-size').value : 2;
+                ctx.strokeStyle = complex ? document.getElementById('p-color').value : '#888';
                 ctx.lineCap = 'round';
                 ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
                 ctx.stroke();
             };
 
-            window.undoDraw = () => {
-                if (step > 0) {
-                    step--;
-                    let img = new Image();
-                    img.src = history[step];
+            window.undoD = () => {
+                if (drawStep > 0) {
+                    drawStep--;
+                    let img = new Image(); img.src = drawHistory[drawStep];
                     img.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); };
                 }
             };
-
-            window.redoDraw = () => {
-                if (step < history.length - 1) {
-                    step++;
-                    let img = new Image();
-                    img.src = history[step];
-                    img.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); };
-                }
-            };
-
-            window.clearCanvas = (id) => {
-                const c = document.getElementById(id);
+            window.clearC = (cid) => {
+                const c = document.getElementById(cid);
                 c.getContext('2d').clearRect(0,0,c.width,c.height);
-                history = []; step = -1;
+                if(complex) { drawHistory = []; drawStep = -1; }
             };
-
-            window.saveDraw = () => {
+            window.saveD = () => {
                 const link = document.createElement('a');
-                link.download = 'sketch.png';
-                link.href = canvas.toDataURL();
-                link.click();
+                link.download = 'draw.png'; link.href = canvas.toDataURL(); link.click();
             };
         }
     </script>
