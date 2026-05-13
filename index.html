@@ -3,71 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist OS v15 // Cinema Pro</title>
+    <title>Minimalist OS v16 // Final</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&family=JetBrains+Mono:wght@500&display=swap');
 
         :root {
             --bg: #000;
             --text-p: #fff;
-            --text-s: #888;
-            --accent: #fff;
-            --border: rgba(255, 255, 255, 0.12);
-            --curve: cubic-bezier(0.05, 0.7, 0.1, 1);
+            --text-s: #777;
+            --border: rgba(255, 255, 255, 0.15);
+            --curve: cubic-bezier(0.2, 1, 0.2, 1);
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text-p); font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* UI HUD */
-        #hud-top { position: fixed; top: 40px; left: 40px; right: 40px; display: flex; justify-content: space-between; z-index: 100; font-size: 12px; letter-spacing: 2px; font-weight: 600; color: var(--text-s); }
-        #back-btn { cursor: pointer; color: var(--text-p); opacity: 0; visibility: hidden; transition: 0.4s var(--curve); border-bottom: 1px solid var(--text-p); }
-        #back-btn.show { opacity: 1; visibility: visible; }
-        #la-time { font-family: 'JetBrains Mono'; letter-spacing: 0; }
+        /* 全局 UI */
+        #hud { position: fixed; top: 40px; left: 40px; right: 40px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        #exit-btn { 
+            font-size: 13px; letter-spacing: 2px; font-weight: 900; cursor: pointer; 
+            color: var(--text-p); transition: 0.3s; opacity: 0; pointer-events: none;
+            border-bottom: 2px solid transparent; 
+        }
+        #exit-btn.active { opacity: 1; pointer-events: auto; }
+        #exit-btn:hover { border-bottom-color: #fff; }
+        #la-time { font-family: 'JetBrains Mono'; font-size: 12px; color: var(--text-s); }
 
-        /* Animation */
-        .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.8s var(--curve); position: absolute; top: 0; left: 0; }
-        .hidden { opacity: 0; transform: translateY(30px); pointer-events: none; }
-        .container { width: 90%; max-width: 1100px; height: 80vh; display: flex; flex-direction: column; }
+        /* 屏显逻辑 */
+        .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.8s var(--curve); position: absolute; }
+        .hidden { opacity: 0; transform: scale(0.98) translateY(20px); pointer-events: none; }
+        .container { width: 85%; max-width: 1100px; height: 80vh; display: flex; flex-direction: column; }
 
-        /* Typography */
-        .hero { font-size: 7rem; font-weight: 900; letter-spacing: -5px; line-height: 0.85; margin: 0; }
-        .sub { font-size: 14px; letter-spacing: 6px; text-transform: uppercase; color: var(--text-s); margin-bottom: 20px; font-weight: 600; }
+        /* 字体与标题 */
+        .hero { font-size: 7.5rem; font-weight: 900; letter-spacing: -6px; line-height: 0.8; margin: 0; color: #fff; }
+        .sub-cap { font-size: 13px; letter-spacing: 6px; text-transform: uppercase; color: var(--text-s); margin-bottom: 15px; font-weight: 700; }
         
-        /* Inputs & Buttons */
-        input#main-cmd { background: transparent; border: none; border-bottom: 2px solid var(--border); color: #fff; padding: 15px 0; font-size: 2rem; font-weight: 900; width: 400px; text-align: center; outline: none; transition: 0.6s var(--curve); }
-        input#main-cmd:focus { width: 550px; border-bottom-color: #fff; }
+        /* 输入与按钮 */
+        #cmd-in { 
+            background: transparent; border: none; border-bottom: 3px solid var(--border); 
+            color: #fff; padding: 15px 0; font-size: 2.2rem; font-weight: 900; width: 450px; 
+            text-align: center; outline: none; transition: 0.5s var(--curve); 
+        }
+        #cmd-in:focus { width: 600px; border-bottom-color: #fff; }
         
-        button { background: transparent; border: 1px solid var(--border); color: #fff; padding: 10px 20px; font-size: 10px; font-weight: 600; letter-spacing: 2px; cursor: pointer; transition: 0.3s; margin: 5px; text-transform: uppercase; }
-        button:hover { background: #fff; color: #000; }
+        button { 
+            background: transparent; border: 2px solid var(--border); color: #fff; 
+            padding: 12px 24px; font-size: 11px; font-weight: 900; letter-spacing: 2px; 
+            cursor: pointer; transition: 0.3s; margin: 5px; text-transform: uppercase; 
+        }
+        button:hover { background: #fff; color: #000; border-color: #fff; }
 
-        /* Tools Layout */
-        .app-split { display: grid; grid-template-columns: 350px 1fr; gap: 60px; height: 100%; }
-        canvas { background: #050505; border: 1px solid var(--border); border-radius: 2px; cursor: crosshair; }
-        
-        /* Range Slider Styling */
-        input[type=range] { -webkit-appearance: none; background: transparent; width: 150px; }
-        input[type=range]::-webkit-slider-runnable-track { height: 2px; background: var(--border); }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; background: #fff; margin-top: -5px; cursor: pointer; }
+        /* 模块样式 */
+        .split-view { display: grid; grid-template-columns: 350px 1fr; gap: 60px; height: 100%; }
+        canvas { background: #000; border: 2px solid var(--border); border-radius: 4px; cursor: crosshair; }
+        input[type=range] { -webkit-appearance: none; background: var(--border); height: 2px; width: 120px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; background: #fff; cursor: pointer; border-radius: 50%; }
 
         /* Chat */
-        #chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 30px; padding-bottom: 20px; }
-        .msg { font-size: 1.1rem; font-weight: 400; line-height: 1.6; max-width: 80%; }
-        .ai-msg { color: var(--text-s); border-left: 2px solid #333; padding-left: 25px; align-self: flex-start; }
-        .user-msg { color: var(--text-p); align-self: flex-end; text-align: right; font-weight: 600; }
+        #chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 30px; margin-bottom: 20px; }
+        .msg { font-size: 1.1rem; font-weight: 500; line-height: 1.6; max-width: 80%; }
+        .ai-msg { color: var(--text-s); border-left: 4px solid #222; padding-left: 25px; align-self: flex-start; }
+        .user-msg { color: #fff; align-self: flex-end; text-align: right; }
     </style>
 </head>
 <body onclick="initAudio()">
 
-    <div id="hud-top">
-        <div id="sys-label">SYSTEM_V15_READY</div>
-        <div id="back-btn" onclick="goHome()">EXIT_ARCHIVE</div>
+    <div id="hud">
+        <div id="exit-btn" onclick="goHome()">EXIT_SYSTEM</div>
         <div id="la-time">00:00:00</div>
     </div>
 
     <div id="home-screen" class="screen">
-        <div class="sub">Command Interface</div>
-        <input type="text" id="main-cmd" placeholder="___" autocomplete="off" autofocus>
+        <div class="sub-cap">Command Interface</div>
+        <input type="text" id="cmd-in" placeholder="___" autocomplete="off" autofocus>
     </div>
 
     <div id="app-screen" class="screen hidden">
@@ -75,19 +83,19 @@
     </div>
 
     <script>
-        // --- 1. Sound Engine ---
-        const click = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFRm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTdvT19hc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rh");
-        function playSfx() { const s = click.cloneNode(); s.volume = 0.1; s.play().catch(()=>{}); }
+        // --- 音效模块 ---
+        const sfx = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFRm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTdvT19hc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rhc2Rh");
+        function playSfx() { const s = sfx.cloneNode(); s.volume = 0.15; s.play().catch(()=>{}); }
         function initAudio() { document.body.onclick = null; }
 
-        // --- 2. Navigation ---
-        const mainCmd = document.getElementById('main-cmd');
+        // --- 导航逻辑 ---
+        const cmdIn = document.getElementById('cmd-in');
         const appContent = document.getElementById('app-content');
         
-        mainCmd.addEventListener('input', playSfx);
-        mainCmd.addEventListener('keypress', (e) => {
+        cmdIn.addEventListener('input', playSfx);
+        cmdIn.addEventListener('keypress', (e) => {
             if(e.key === 'Enter') {
-                const val = mainCmd.value.toLowerCase().trim();
+                const val = cmdIn.value.toLowerCase().trim();
                 const apps = ['vocabulary','drawing','weather','chat','calculator','timing','hello'];
                 if(apps.includes(val)) launch(val);
             }
@@ -96,73 +104,60 @@
         function launch(type) {
             document.getElementById('home-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            document.getElementById('back-btn').classList.add('show');
+            document.getElementById('exit-btn').classList.add('active');
             render(type);
         }
 
         function goHome() {
             document.getElementById('app-screen').classList.add('hidden');
             document.getElementById('home-screen').classList.remove('hidden');
-            document.getElementById('back-btn').classList.remove('show');
-            mainCmd.value = '';
+            document.getElementById('exit-btn').classList.remove('active');
+            cmdIn.value = '';
             clearInterval(swInt); clearInterval(trInt);
         }
 
         function render(type) {
             appContent.innerHTML = '';
             if(type === 'hello') {
-                appContent.innerHTML = `<div style="text-align:center"><div class="hero">Hello.</div><div class="sub" style="margin-top:30px">A private digital sanctuary.</div><p style="max-width:500px; color:var(--text-s); font-weight:600; line-height:1.8">Eliminate noise. Focus on the core. Every tool in this archive is designed for deep work.</p></div>`;
                 appContent.style.justifyContent = 'center'; appContent.style.alignItems = 'center';
-            } else if(type === 'vocabulary') initVocab();
-            else if(type === 'drawing') initDrawing();
+                appContent.innerHTML = `
+                    <div class="hero">Hello.</div>
+                    <div class="sub-cap" style="margin-top:40px">A Sanctuary for Focus</div>
+                    <p style="max-width:600px; color:var(--text-s); font-weight:500; line-height:1.8; text-align:center">
+                        This environment is stripped of all non-essentials. 
+                        Use the provided tools to think, create, and refine without distraction.
+                    </p>`;
+            } else if(type === 'drawing') initDrawing();
+            else if(type === 'timing') initTiming();
+            else if(type === 'vocabulary') initVocab();
             else if(type === 'weather') initWeather();
             else if(type === 'chat') initChat();
             else if(type === 'calculator') initCalc();
-            else if(type === 'timing') initTiming();
         }
 
-        // --- VOCABULARY ---
-        async function initVocab() {
-            appContent.style.justifyContent = 'flex-start'; appContent.style.alignItems = 'stretch';
-            appContent.innerHTML = `<input type="text" id="v-in" placeholder="WORD" style="width:100%; text-align:left; font-size:3rem; font-weight:900; border:none; border-bottom:2px solid #222; outline:none; background:transparent; color:#fff; padding:20px 0;"><div id="v-res" style="margin-top:60px"></div>`;
-            const vin = document.getElementById('v-in'); vin.focus();
-            vin.onkeypress = async (e) => {
-                if(e.key === 'Enter') {
-                    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${vin.value}`);
-                    const d = await r.json();
-                    if(d[0]) {
-                        const def = d[0].meanings[0].definitions[0].definition;
-                        const zh = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(def)}&langpair=en|zh-CN`).then(r=>r.json());
-                        document.getElementById('v-res').innerHTML = `<div class="hero" style="font-size:5rem">${vin.value}</div><div style="font-size:1.5rem; margin-top:30px; font-weight:600; line-height:1.6">${def}<br><span style="color:var(--text-s)">${zh.responseData.translatedText}</span></div>`;
-                    }
-                }
-            };
-        }
-
-        // --- DRAWING (WITH SIZE REGULATOR) ---
-        let dHistory = []; let dStep = -1;
+        // --- DRAWING ---
+        let dHist = []; let dStep = -1;
         function initDrawing() {
             appContent.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
-                    <div style="display:flex; align-items:center; gap:20px">
-                        <button onclick="dMode='pen'">Pen</button>
-                        <button onclick="dMode='eraser'">Eraser</button>
-                        <div style="display:flex; align-items:center; gap:10px; margin-left:20px">
-                            <span style="font-size:10px; font-weight:900">SIZE</span>
-                            <input type="range" id="d-size" min="1" max="100" value="2">
+                    <div style="display:flex; align-items:center; gap:30px">
+                        <button onclick="dMode='pen'">PEN</button>
+                        <button onclick="dMode='eraser'">ERASER</button>
+                        <div style="display:flex; align-items:center; gap:15px">
+                            <span style="font-size:10px; font-weight:900">BRUSH_SIZE</span>
+                            <input type="range" id="d-size" min="1" max="80" value="3">
                         </div>
                     </div>
                     <div>
-                        <button onclick="undo()">Undo</button>
-                        <button onclick="clearD()">Clear</button>
-                        <button onclick="saveD()" style="background:#fff; color:#000">Save</button>
+                        <button onclick="undo()">UNDO</button>
+                        <button onclick="clearD()">CLEAR</button>
+                        <button onclick="saveD()" style="background:#fff; color:#000">SAVE_PNG</button>
                     </div>
                 </div>
-                <canvas id="d-can" width="1100" height="580"></canvas>
-            `;
+                <canvas id="d-can" width="1100" height="600"></canvas>`;
             const c = document.getElementById('d-can'), ctx = c.getContext('2d');
             window.dMode = 'pen';
-            const save = () => { dStep++; dHistory.length = dStep; dHistory.push(c.toDataURL()); };
+            const save = () => { dStep++; dHist.length = dStep; dHist.push(c.toDataURL()); };
             save();
             let drawing = false;
             c.onmousedown = (e) => { drawing = true; ctx.beginPath(); const r = c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
@@ -174,52 +169,81 @@
                 ctx.strokeStyle = dMode === 'eraser' ? '#000' : '#fff';
                 ctx.lineCap = 'round'; ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
             };
-            window.undo = () => { if(dStep > 0) { dStep--; let i = new Image(); i.src = dHistory[dStep]; i.onload = () => { ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0); } } };
+            window.undo = () => { if(dStep > 0) { dStep--; let i = new Image(); i.src = dHist[dStep]; i.onload = () => { ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0); } } };
             window.clearD = () => { ctx.clearRect(0,0,c.width,c.height); save(); };
-            window.saveD = () => { const a = document.createElement('a'); a.download = 'sketch.png'; a.href = c.toDataURL(); a.click(); };
+            window.saveD = () => { const a = document.createElement('a'); a.download = 'archive_sketch.png'; a.href = c.toDataURL(); a.click(); };
         }
 
-        // --- TIMING (STOPWATCH + TIMER) ---
+        // --- TIMING ---
         let swMs = 0, swInt = null, trInt = null;
         function initTiming() {
             appContent.style.justifyContent = 'center';
             appContent.innerHTML = `
-                <div class="app-split" style="grid-template-columns: 1fr 1fr; text-align:center">
+                <div class="split-view" style="grid-template-columns: 1fr 1fr; text-align:center">
                     <div>
-                        <div class="sub">Stopwatch</div>
-                        <div id="sw-val" class="hero" style="font-size:5rem">00:00:00</div>
-                        <div style="margin-top:40px"><button onclick="swAction('s')">Start</button><button onclick="swAction('p')">Stop</button></div>
+                        <div class="sub-cap">Stopwatch</div>
+                        <div id="sw-v" class="hero" style="font-size:6rem">00:00:00</div>
+                        <div style="margin-top:50px"><button onclick="swA('s')">START</button><button onclick="swA('p')">STOP</button></div>
                     </div>
-                    <div style="border-left:1px solid var(--border)">
-                        <div class="sub">Timer</div>
-                        <div id="tr-val" class="hero" style="font-size:5rem">00:00:00</div>
-                        <div style="margin-top:40px">
-                            <input type="number" id="tr-in" placeholder="MINS" style="width:100px; background:transparent; border:1px solid var(--border); color:#fff; text-align:center; padding:10px; margin-bottom:10px"><br>
-                            <button onclick="trAction()">Set Timer</button>
+                    <div style="border-left:2px solid var(--border)">
+                        <div class="sub-cap">Timer</div>
+                        <div id="tr-v" class="hero" style="font-size:6rem">00:00:00</div>
+                        <div style="margin-top:50px">
+                            <input type="number" id="tr-in" placeholder="MINUTES" style="width:140px; background:transparent; border:2px solid var(--border); color:#fff; text-align:center; padding:12px; margin-bottom:15px; font-weight:700"><br>
+                            <button onclick="trA()">SET_TIMER</button>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
-        window.swAction = (t) => {
-            const el = document.getElementById('sw-val');
+        window.swA = (t) => {
+            const el = document.getElementById('sw-v');
             if(t==='s') { if(!swInt) swInt = setInterval(()=>{swMs+=1000; el.innerText=new Date(swMs).toISOString().substr(11,8)},1000); }
             else { clearInterval(swInt); swInt=null; }
         };
-        window.trAction = () => {
+        window.trA = () => {
             clearInterval(trInt);
             let sec = (parseInt(document.getElementById('tr-in').value) || 0) * 60;
-            const el = document.getElementById('tr-val');
+            const el = document.getElementById('tr-v');
             trInt = setInterval(() => {
-                if(sec <= 0) { clearInterval(trInt); alert("Time's Up"); return; }
+                if(sec <= 0) { clearInterval(trInt); alert("TIMER_FINISHED"); return; }
                 sec--; let m = Math.floor(sec/60), s = sec%60;
                 el.innerText = `00:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
             }, 1000);
         };
 
+        // --- VOCABULARY ---
+        async function initVocab() {
+            appContent.style.justifyContent = 'flex-start'; appContent.style.alignItems = 'stretch';
+            appContent.innerHTML = `<input type="text" id="v-in" placeholder="SEARCH_WORD" style="width:100%; text-align:left; font-size:3.5rem; font-weight:900; border:none; border-bottom:3px solid #222; outline:none; background:transparent; color:#fff; padding:30px 0;"><div id="v-res" style="margin-top:60px"></div>`;
+            const vin = document.getElementById('v-in'); vin.focus();
+            vin.onkeypress = async (e) => {
+                if(e.key === 'Enter') {
+                    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${vin.value}`);
+                    const d = await r.json();
+                    if(d[0]) {
+                        const def = d[0].meanings[0].definitions[0].definition;
+                        const zh = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(def)}&langpair=en|zh-CN`).then(r=>r.json());
+                        document.getElementById('v-res').innerHTML = `<div class="hero" style="font-size:6rem">${vin.value}</div><div style="font-size:1.8rem; margin-top:40px; font-weight:700; line-height:1.4">${def}<br><span style="color:var(--text-s)">${zh.responseData.translatedText}</span></div>`;
+                    }
+                }
+            };
+        }
+
+        // --- WEATHER ---
+        let wD = 1;
+        function initWeather() {
+            const up = () => {
+                const ds = [{l:'Yesterday', t:19}, {l:'Today', t:22}, {l:'Tomorrow', t:24}];
+                appContent.style.justifyContent = 'center'; appContent.style.alignItems = 'center';
+                appContent.innerHTML = `<div class="sub-cap">${ds[wD].l}</div><div class="hero" style="font-size:11rem">${ds[wD].t}°C</div><div class="sub-cap" style="margin-top:30px">Los Angeles</div><div style="margin-top:60px"><button onclick="wM(-1)">PREVIOUS</button><button onclick="wM(1)">NEXT</button></div>`;
+            };
+            window.wM = (n) => { wD = Math.max(0, Math.min(2, wD+n)); up(); };
+            up();
+        }
+
         // --- CHAT ---
         function initChat() {
-            appContent.innerHTML = `<div id="chat-log"></div><input type="text" id="chat-in" placeholder="TYPE MESSAGE..." style="width:100%; background:transparent; border:none; border-top:1px solid var(--border); padding:30px 0; color:#fff; outline:none; font-size:1.2rem; font-weight:600">`;
+            appContent.innerHTML = `<div id="chat-log"></div><input type="text" id="chat-in" placeholder="TYPE_MESSAGE" style="width:100%; background:transparent; border:none; border-top:2px solid var(--border); padding:40px 0; color:#fff; outline:none; font-size:1.4rem; font-weight:700">`;
             const cin = document.getElementById('chat-in'); cin.focus();
             cin.onkeypress = (e) => {
                 if(e.key === 'Enter') {
@@ -240,27 +264,14 @@
             };
         }
 
-        // --- WEATHER ---
-        let wD = 1;
-        function initWeather() {
-            const up = () => {
-                const ds = [{l:'Yesterday', t:19}, {l:'Today', t:22}, {l:'Tomorrow', t:24}];
-                appContent.style.justifyContent = 'center'; appContent.style.alignItems = 'center';
-                appContent.innerHTML = `<div class="sub">${ds[wD].l}</div><div class="hero" style="font-size:10rem">${ds[wD].t}°C</div><div class="sub" style="margin-top:20px">Los Angeles</div><div style="margin-top:60px"><button onclick="wM(-1)">Prev</button><button onclick="wM(1)">Next</button></div>`;
-            };
-            window.wM = (n) => { wD = Math.max(0, Math.min(2, wD+n)); up(); };
-            up();
-        }
-
         // --- CALCULATOR ---
         let cExp = "";
         function initCalc() {
-            appContent.innerHTML = `<div class="app-split"><div><div id="c-out" style="font-size:4rem; font-weight:900; text-align:right; margin-bottom:40px; height:80px">0</div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="runC('${k}')">${k.replace('Math.','')}</button>`).join('')}</div></div><canvas id="c-pad" width="700" height="550"></canvas></div>`;
-            const ctx = document.getElementById('c-pad').getContext('2d');
+            appContent.innerHTML = `<div class="split-view"><div><div id="c-out" style="font-size:4.5rem; font-weight:900; text-align:right; margin-bottom:40px; height:90px">0</div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="runC('${k}')">${k.replace('Math.','')}</button>`).join('')}</div></div><canvas id="c-pad" width="700" height="580"></canvas></div>`;
             window.runC = (k) => { playSfx(); if(k==='C') cExp=""; else if(k==='=') cExp=eval(cExp).toString(); else cExp+=k; document.getElementById('c-out').innerText = cExp || "0"; };
         }
 
-        // LA Time HUD
+        // 时钟更新
         setInterval(() => {
             const now = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour12: false });
             document.getElementById('la-time').innerText = now;
