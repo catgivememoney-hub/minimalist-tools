@@ -3,292 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archive OS v28 // Final Stability</title>
+    <title>Archive</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
         :root {
             --bg: #000;
-            --p: #fff;
-            --s: #1a1a1a;
-            --sub: #555;
-            --accent: #fff;
-            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --text: #fff;
+            --sub: #888;
+            --border: #222;
+            --top-height: 180px;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         body, html { 
             margin: 0; padding: 0; height: 100vh; 
-            background: var(--bg); color: var(--p); 
-            font-family: 'Lexend', sans-serif; overflow: hidden; 
+            background: var(--bg); color: var(--text); 
+            font-family: -apple-system, "Inter", "Segoe UI", sans-serif; overflow: hidden; 
         }
 
-        /* 顶部导航层 */
-        #hud { position: fixed; top: 30px; left: 40px; z-index: 9999; }
-        #exit-btn { 
-            font-size: 10px; font-weight: 800; letter-spacing: 2px; color: var(--p);
-            cursor: pointer; display: none; border: 1px solid #333;
-            padding: 8px 20px; border-radius: 100px; backdrop-filter: blur(20px);
-        }
-        #exit-btn.active { display: block; }
-        #exit-btn:hover { background: #fff; color: #000; }
-
-        /* 核心布局架构 - 防止遮挡 */
-        .master-wrapper {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: 40px 80px;
+        /* 顶部导航与输入区 */
+        .header {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--top-height);
+            padding: 40px 60px; background: var(--bg); z-index: 100;
+            display: flex; flex-direction: column; justify-content: flex-end;
         }
 
-        /* 搜索区域：固定高度，绝不重叠 */
-        .search-area {
-            flex-shrink: 0;
-            padding-top: 40px;
-            margin-bottom: 40px;
+        .nav-label { font-size: 11px; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+        .main-input {
+            background: transparent; border: none; border-bottom: 1px solid var(--border);
+            color: var(--text); font-size: 2.5rem; width: 100%; outline: none;
+            padding-bottom: 12px; transition: border-color 0.3s;
         }
-        .label-mini { font-size: 10px; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
-        .master-input { 
-            background: transparent; border: none; color: #fff; 
-            font-size: 3.5rem; font-weight: 800; width: 100%;
-            outline: none; border-bottom: 2px solid var(--s); transition: 0.4s;
-            padding-bottom: 10px;
+        .main-input:focus { border-bottom-color: #eee; }
+
+        /* 内容显示区 */
+        .content-wrap {
+            margin-top: var(--top-height); height: calc(100vh - var(--top-height));
+            padding: 0 60px 40px 60px; overflow-y: auto; scrollbar-width: none;
         }
-        .master-input:focus { border-bottom-color: #fff; }
+        .content-wrap::-webkit-scrollbar { display: none; }
 
-        /* 内容挂载区：自动滚动 */
-        #mount {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding-bottom: 40px;
-            scrollbar-width: none;
+        /* 返回按钮 */
+        #exit-btn {
+            position: fixed; top: 40px; right: 60px; z-index: 200;
+            font-size: 11px; color: var(--sub); cursor: pointer; display: none;
+            border: 1px solid var(--border); padding: 8px 16px; border-radius: 4px;
         }
-        #mount::-webkit-scrollbar { display: none; }
+        #exit-btn:hover { color: #fff; border-color: #fff; }
 
-        /* 模块排版 */
-        .title-huge { font-size: 5.5rem; font-weight: 800; letter-spacing: -4px; line-height: 0.9; margin: 0 0 20px 0; }
-        .desc-text { font-size: 1.5rem; color: var(--sub); line-height: 1.6; max-width: 800px; font-weight: 300; }
-        
-        button { 
-            background: #111; border: 1px solid #222; color: #fff; 
-            padding: 10px 22px; font-size: 11px; font-weight: 600; border-radius: 50px;
-            cursor: pointer; transition: 0.2s;
-        }
-        button:hover { background: #fff; color: #000; }
+        /* Vocabulary 布局 */
+        .voc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 20px; }
+        .voc-word { font-size: 4rem; font-weight: 700; margin: 0; }
+        .voc-pos { font-style: italic; color: var(--sub); margin-bottom: 20px; }
+        .section { margin-bottom: 30px; }
+        .section-h { font-size: 11px; color: var(--sub); text-transform: uppercase; margin-bottom: 10px; }
+        .section-c { font-size: 1.2rem; line-height: 1.5; color: #ccc; }
 
-        /* Vocabulary 结果页布局 */
-        .voc-container { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; animation: slideUp 0.6s var(--ease); }
-        .voc-tag { display: inline-block; padding: 4px 12px; background: #fff; color: #000; border-radius: 5px; font-size: 11px; font-weight: 800; margin-bottom: 20px; }
-        .voc-meta { border-left: 1px solid #1a1a1a; padding-left: 50px; }
-        .voc-label { font-size: 10px; color: var(--sub); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 2px; }
-        .voc-content { font-size: 1.8rem; font-weight: 600; margin-bottom: 35px; color: #eee; }
-
-        /* Canvas & Calculator */
-        .canvas-box { height: 500px; background: #050505; border-radius: 40px; border: 1px solid #1a1a1a; position: relative; width: 100%; }
+        /* Drawing & Calculator */
+        .canvas-container { width: 100%; height: 600px; background: #050505; border: 1px solid var(--border); position: relative; }
         canvas { width: 100%; height: 100%; cursor: crosshair; }
+        .tool-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        button { background: transparent; border: 1px solid var(--border); color: #fff; padding: 6px 14px; font-size: 11px; cursor: pointer; }
+        button:hover { border-color: #fff; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        /* Calculator */
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 320px; }
+        .calc-btn { height: 50px; font-size: 14px; border: 1px solid var(--border); }
+        #calc-res { font-size: 3rem; margin-bottom: 20px; text-align: right; width: 320px; }
+
+        /* Chat */
+        .msg { margin-bottom: 40px; }
+        .msg-u { text-align: right; color: var(--sub); }
+        .msg-t { font-size: 1.5rem; line-height: 1.4; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-    <div id="hud"><div id="exit-btn" onclick="goHome()">SYSTEM_EXIT</div></div>
+    <div id="exit-btn" onclick="goHome()">BACK</div>
 
-    <div class="master-wrapper">
-        <div class="search-area">
-            <div id="mode-label" class="label-mini">COMMAND_INTERFACE</div>
-            <input type="text" id="main-in" class="master-input" placeholder="Enter Command..." autocomplete="off" autofocus>
-        </div>
+    <div class="header">
+        <div id="mode-label" class="nav-label">COMMAND</div>
+        <input type="text" id="input" class="main-input" placeholder="Type here..." autocomplete="off" autofocus>
+    </div>
 
-        <div id="mount">
-            <div class="title-huge">Archive OS.</div>
-            <p class="desc-text">Version 28 Elite. A refined digital sanctuary. Type 'hello' to begin.</p>
-        </div>
+    <div id="mount" class="content-wrap">
+        <div class="msg-t" style="color: #444">Welcome. Commands: hello, drawing, vocabulary, chat, calculator, weather.</div>
     </div>
 
     <script>
-        const input = document.getElementById('main-in');
+        const input = document.getElementById('input');
         const mount = document.getElementById('mount');
-        const exitBtn = document.getElementById('exit-btn');
+        const exit = document.getElementById('exit-btn');
         const modeLabel = document.getElementById('mode-label');
 
-        let swInt, trInt, dMode = 'pen';
-        let stacks = { main: [], calc: [] };
         let appState = 'home';
+        let dMode = 'pen';
+        let stacks = { main: [], calc: [] };
 
         input.addEventListener('keypress', (e) => {
             if(e.key === 'Enter') {
-                const val = input.value.toLowerCase().trim();
+                const val = input.value.trim();
+                const low = val.toLowerCase();
                 if(appState === 'home') {
-                    if(['hello','drawing','timing','weather','chat','vocabulary','calculator'].includes(val)) launch(val);
+                    if(['hello','drawing','vocabulary','chat','calculator','weather'].includes(low)) launch(low);
                 } else if(appState === 'vocabulary') {
-                    searchWord(val);
+                    search(val);
                 } else if(appState === 'chat') {
-                    handleChat(val);
+                    chat(val);
                 }
             }
         });
 
         function launch(type) {
             appState = type;
-            modeLabel.innerText = `MODE / ${type.toUpperCase()}`;
-            exitBtn.classList.add('active');
+            modeLabel.innerText = type.toUpperCase();
+            exit.style.display = 'block';
             input.value = '';
-            input.placeholder = (type === 'vocabulary') ? "Search word..." : (type === 'chat' ? "Say something..." : "");
             render(type);
         }
 
         function goHome() {
-            clearInterval(swInt); clearInterval(trInt);
             appState = 'home';
-            modeLabel.innerText = `COMMAND_INTERFACE`;
-            exitBtn.classList.remove('active');
+            modeLabel.innerText = 'COMMAND';
+            exit.style.display = 'none';
             input.value = '';
-            input.placeholder = "Enter Command...";
-            mount.innerHTML = `<div class="title-huge">Archive OS.</div><p class="desc-text">Version 28 Elite. A refined digital sanctuary.</p>`;
+            mount.innerHTML = `<div class="msg-t" style="color: #444">Welcome.</div>`;
             input.focus();
         }
 
         function render(type) {
             mount.innerHTML = '';
             if(type === 'hello') {
-                mount.innerHTML = `<div class="title-huge">Hello.</div><p class="desc-text">Welcome to your workspace. This system is designed for focus, removing every unnecessary element to let your mind breathe.</p>`;
-            } else if(type === 'vocabulary') {
-                mount.innerHTML = `<div id="voc-out" class="desc-text">Ready to analyze language...</div>`;
-            } else if(type === 'chat') {
-                mount.innerHTML = `<div id="chat-flow" style="display:flex; flex-direction:column; gap:40px;"></div>`;
+                mount.innerHTML = `<div><div class="voc-word">Hello.</div><p class="section-c" style="max-width:600px">This is a minimalist workspace. Every tool is focused on one task at a time.</p></div>`;
             } else if(type === 'drawing') {
                 mount.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items:center;">
-                        <div class="label-mini">Creative Canvas</div>
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="dMode='pen'">Pen</button><button onclick="dMode='eraser'">Eraser</button>
-                            <button onclick="undo('main')">Undo</button><button onclick="clearC('main')">Clear</button>
-                        </div>
+                    <div class="tool-bar">
+                        <button onclick="dMode='pen'">PEN</button><button onclick="dMode='eraser'">ERASER</button>
+                        <button onclick="undo('main')">UNDO</button><button onclick="clearC('main')">CLEAR</button>
                     </div>
-                    <div class="canvas-box"><canvas id="can-main"></canvas></div>`;
+                    <div class="canvas-container"><canvas id="can-main"></canvas></div>`;
                 setTimeout(() => initDraw('can-main'), 50);
+            } else if(type === 'vocabulary') {
+                input.placeholder = "Search Word...";
+                mount.innerHTML = `<div id="v-res">Ready.</div>`;
             } else if(type === 'calculator') {
                 mount.innerHTML = `
-                    <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:60px; height: 100%;">
+                    <div style="display:flex; gap:60px;">
                         <div>
-                            <div id="c-res" style="font-family:'JetBrains Mono'; font-size:4.5rem; text-align:right; margin-bottom:30px; height:100px;">0</div>
-                            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
-                                ${['C','/','*','-','7','8','9','+','4','5','6','sqrt','1','2','3','=','0','.','sin','cos'].map(k=>`<button onclick="calc('${k}')" style="height:70px; border-radius:15px; font-size:14px">${k}</button>`).join('')}
+                            <div id="calc-res">0</div>
+                            <div class="calc-grid">
+                                ${['C','/','*','-','7','8','9','+','4','5','6','sqrt','1','2','3','=','0','.'].map(k=>`<button class="calc-btn" onclick="calc('${k}')">${k}</button>`).join('')}
                             </div>
                         </div>
-                        <div class="canvas-box">
-                            <div style="position:absolute; top:20px; left:20px; z-index:10; display:flex; gap:10px;">
-                                <button onclick="undo('calc')">Undo</button><button onclick="clearC('calc')">Clear</button>
-                            </div>
+                        <div class="canvas-container" style="width:400px; height:400px;">
+                            <div style="position:absolute; top:10px; right:10px;"><button onclick="clearC('calc')">C</button></div>
                             <canvas id="can-calc"></canvas>
                         </div>
                     </div>`;
                 setTimeout(() => initDraw('can-calc'), 50);
-            } else if(type === 'weather') {
-                mount.innerHTML = `
-                    <div class="title-huge" style="font-size:3rem">Climate.</div>
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:30px; margin-top:40px;">
-                        <div style="padding:40px; border-radius:30px; background:#080808"><div class="label-mini">Yesterday</div><div style="font-size:3rem; font-weight:800;">18°C</div></div>
-                        <div style="padding:40px; border-radius:30px; border:1px solid #fff"><div class="label-mini">Today</div><div id="w-now" style="font-size:3rem; font-weight:800;">0°C</div></div>
-                        <div style="padding:40px; border-radius:30px; background:#080808"><div class="label-mini">Tomorrow</div><div style="font-size:3rem; font-weight:800;">24°C</div></div>
-                    </div>`;
-                let t=0; let itv=setInterval(()=>{if(t>=22){clearInterval(itv)} document.getElementById('w-now').innerText=t+'°C'; t++},30);
+            } else if(type === 'chat') {
+                mount.innerHTML = `<div id="chat-l"></div>`;
             }
         }
 
-        // --- Vocabulary: 离线+在线双重补全 ---
-        async function searchWord(w) {
-            const out = document.getElementById('voc-out');
-            out.innerHTML = "Processing...";
-            
-            const offline = {
-                "hello": {cn: "你好 / 问候", syn: "greeting, welcome", ant: "goodbye", sent: "He smiled and said hello to everyone.", pos: "noun / interjection"},
-                "jefferson": {cn: "杰斐逊 (美国政治家)", syn: "statesman, founder", ant: "None", sent: "Jefferson believed in the power of education.", pos: "proper noun"},
-                "presley": {cn: "普雷斯利 (猫王)", syn: "singer, icon", ant: "None", sent: "Presley's music changed the world forever.", pos: "proper noun"}
+        // --- Vocabulary: 补全解释与内容 ---
+        function search(w) {
+            const out = document.getElementById('v-res');
+            // 内置词库确保加载
+            const lib = {
+                "hello": { en: "A greeting used to express recognition or welcome.", pos: "noun / interjection", cn: "你好 / 问候", syn: ["greeting", "salutation"], ant: ["goodbye"], sent: "She gave a friendly hello to the new neighbor." },
+                "jefferson": { en: "Commonly refers to Thomas Jefferson, the 3rd US President.", pos: "proper noun", cn: "杰斐逊", syn: ["Statesman"], ant: ["N/A"], sent: "Jefferson authored the Declaration of Independence." },
+                "presley": { en: "Refers to Elvis Presley, the King of Rock and Roll.", pos: "proper noun", cn: "普雷斯利", syn: ["Icon"], ant: ["N/A"], sent: "Presley's mansion is called Graceland." }
             };
 
-            let data;
-            try {
-                const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${w}`);
-                const d = await r.json();
-                if(d[0]) {
-                    const m = d[0].meanings[0];
-                    data = {
-                        cn: offline[w]?.cn || "翻译检索中...",
-                        syn: m.synonyms.slice(0,2).join(', ') || offline[w]?.syn || "N/A",
-                        ant: m.antonyms.slice(0,2).join(', ') || offline[w]?.ant || "N/A",
-                        sent: m.definitions[0].example || offline[w]?.sent || "Usage example not found.",
-                        pos: m.partOfSpeech
-                    };
-                }
-            } catch(e) {}
-
-            if(!data) data = offline[w] || {cn: "未收录", syn: "N/A", ant: "N/A", sent: "No example.", pos: "unknown"};
-
+            const d = lib[w.toLowerCase()] || { en: "Definition not found in local library.", pos: "unknown", cn: "未找到翻译", syn: ["N/A"], ant: ["N/A"], sent: "N/A" };
+            
             out.innerHTML = `
-                <div class="voc-container">
+                <div class="voc-grid">
                     <div>
-                        <div class="title-huge" style="font-size:4rem">${w}</div>
-                        <div class="voc-tag">${data.pos}</div>
-                        <p class="desc-text" style="color:#fff; font-size:1.6rem">${data.cn}</p>
+                        <h1 class="voc-word">${w}</h1>
+                        <div class="voc-pos">${d.pos}</div>
+                        <div class="section">
+                            <div class="section-h">English Definition</div>
+                            <div class="section-c">${d.en}</div>
+                        </div>
+                        <div class="section">
+                            <div class="section-h">Chinese</div>
+                            <div class="section-c" style="font-size: 2rem; color: #fff;">${d.cn}</div>
+                        </div>
                     </div>
-                    <div class="voc-meta">
-                        <div class="voc-label">Synonyms</div><div class="voc-content">${data.syn}</div>
-                        <div class="voc-label">Antonyms</div><div class="voc-content">${data.ant}</div>
-                        <div class="voc-label">Usage Sentence</div><div class="voc-content" style="font-style:italic; font-weight:300">"${data.sent}"</div>
+                    <div style="border-left: 1px solid #111; padding-left: 60px;">
+                        <div class="section">
+                            <div class="section-h">Synonyms / Antonyms</div>
+                            <div class="section-c"><b>Syn:</b> ${d.syn.join(', ')} <br> <b>Ant:</b> ${d.ant.join(', ')}</div>
+                        </div>
+                        <div class="section">
+                            <div class="section-h">Usage Example</div>
+                            <div class="section-c" style="font-style: italic;">"${d.sent}"</div>
+                        </div>
                     </div>
                 </div>`;
         }
 
-        // --- Chat: 逻辑精准修复 ---
-        function handleChat(v) {
-            const flow = document.getElementById('chat-flow');
-            flow.innerHTML += `<div style="text-align:right"><div class="label-mini">You</div><div style="font-size:2rem; font-weight:800">${v}</div></div>`;
+        // --- Chat: 逻辑严格匹配 ---
+        function chat(v) {
+            const l = document.getElementById('chat-l');
+            const low = v.toLowerCase().trim();
+            l.innerHTML += `<div class="msg msg-u"><div>You</div><div class="msg-t">${v}</div></div>`;
             input.value = '';
+            
+            let r = "guess the password";
+            if(low === 'jefferson') r = "He is someone loved by Presley";
+            else if(low === 'presley') r = "She is not here";
+            else if(low === '15') r = "Look at the photos, they will help you";
+            else if(low === '16') r = "I like this, give it to me";
+            else if(low === 'basketball') r = "Wait until we are both 18, I love you";
+
             setTimeout(() => {
-                let r = "guess the password";
-                if(v==='jefferson') r = "He is someone loved by Presley";
-                else if(v==='presley') r = "She is not here";
-                else if(v==='15') r = "Look at the photos, they will help you";
-                else if(v==='16') r = "I like this, give it to me";
-                else if(v==='basketball') r = "Wait until we are both 18, I love you";
-                flow.innerHTML += `<div><div class="label-mini">Archive</div><div style="font-size:2rem; font-weight:800; color:var(--sub)">${r}</div></div>`;
+                l.innerHTML += `<div class="msg"><div>Archive</div><div class="msg-t" style="color:var(--sub)">${r}</div></div>`;
                 mount.scrollTop = mount.scrollHeight;
             }, 300);
         }
 
-        // --- Drawing & Undo System ---
+        // --- Drawing Logic ---
         function initDraw(id) {
             const c = document.getElementById(id), ctx = c.getContext('2d');
-            const box = c.parentElement;
-            c.width = box.offsetWidth; c.height = box.offsetHeight;
-            let drawing = false;
-            const push = () => { let s=id==='can-main'?stacks.main:stacks.calc; if(s.length>25)s.shift(); s.push(c.toDataURL()); };
-            push();
-            c.onmousedown = (e) => { drawing=true; ctx.beginPath(); const r=c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
-            c.onmouseup = () => { if(drawing) push(); drawing=false; };
+            c.width = c.parentElement.offsetWidth; c.height = c.parentElement.offsetHeight;
+            let draw = false;
+            const push = () => { stacks[id==='can-main'?'main':'calc'].push(c.toDataURL()); };
+            c.onmousedown = (e) => { draw=true; ctx.beginPath(); const r=c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
+            c.onmouseup = () => { if(draw) push(); draw=false; };
             c.onmousemove = (e) => {
-                if(!drawing) return; const r=c.getBoundingClientRect();
-                ctx.lineWidth = 3; ctx.strokeStyle = (dMode==='eraser'&&id==='can-main')?'#050505':'#fff';
-                ctx.lineCap='round'; ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
+                if(!draw) return; const r=c.getBoundingClientRect();
+                ctx.lineWidth = 2; ctx.strokeStyle = (dMode==='eraser'&&id==='can-main')?'#050505':'#fff';
+                ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
             };
             window.undo = (t) => {
-                const can = document.getElementById(t==='main'?'can-main':'can-calc');
-                const s = t==='main'?stacks.main:stacks.calc;
-                if(s.length>1) { s.pop(); let img=new Image(); img.src=s[s.length-1]; img.onload=()=>{can.getContext('2d').clearRect(0,0,can.width,can.height); can.getContext('2d').drawImage(img,0,0);}}
+                const s = stacks[t];
+                if(s.length > 1) {
+                    s.pop(); let img = new Image(); img.src = s[s.length-1];
+                    img.onload = () => { ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(img,0,0); };
+                }
             };
-            window.clearC = (t) => { const can=document.getElementById(t==='main'?'can-main':'can-calc'); can.getContext('2d').clearRect(0,0,can.width,can.height); stacks[t==='main'?'main':'calc']=[]; push(); };
+            window.clearC = (t) => { ctx.clearRect(0,0,c.width,c.height); stacks[t]=[]; };
         }
 
-        // --- Utils: Calculator ---
-        let calcVal = "";
+        // --- Calculator ---
+        let cv = "";
         window.calc = (k) => {
-            const r = document.getElementById('c-res');
-            if(k==='C') calcVal="";
-            else if(k==='='){ try{calcVal=eval(calcVal.replace(/sqrt/g,'Math.sqrt').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos')).toString()}catch{calcVal="Error"} }
-            else calcVal += k;
-            r.innerText = calcVal || "0";
+            const r = document.getElementById('calc-res');
+            if(k==='C') cv="";
+            else if(k==='='){ try{cv=eval(cv.replace('sqrt','Math.sqrt')).toString()}catch{cv="Error"} }
+            else cv += k;
+            r.innerText = cv || "0";
         }
     </script>
 </body>
