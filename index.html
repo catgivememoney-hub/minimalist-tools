@@ -2,224 +2,231 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archive</title>
+    <title>Archive OS</title>
     <style>
         :root {
             --bg: #000;
-            --text: #fff;
-            --sub: #888;
-            --border: #222;
-            --top-height: 180px;
+            --p: #fff;
+            --s: #666;
+            --b: #222;
+            --accent: #111;
+            --header-h: 160px;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         body, html { 
             margin: 0; padding: 0; height: 100vh; 
-            background: var(--bg); color: var(--text); 
-            font-family: -apple-system, "Inter", "Segoe UI", sans-serif; overflow: hidden; 
+            background: var(--bg); color: var(--p); 
+            font-family: -apple-system, "JetBrains Mono", monospace; overflow: hidden; 
         }
 
-        /* 顶部导航与输入区 */
-        .header {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--top-height);
-            padding: 40px 60px; background: var(--bg); z-index: 100;
-            display: flex; flex-direction: column; justify-content: flex-end;
+        /* 修复遮挡的核心：固定头部 */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--header-h);
+            padding: 40px 60px; background: var(--bg); z-index: 1000;
+            border-bottom: 1px solid var(--b);
         }
 
-        .nav-label { font-size: 11px; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-        .main-input {
-            background: transparent; border: none; border-bottom: 1px solid var(--border);
-            color: var(--text); font-size: 2.5rem; width: 100%; outline: none;
-            padding-bottom: 12px; transition: border-color 0.3s;
+        .label { font-size: 10px; color: var(--s); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+        input {
+            background: transparent; border: none; color: var(--p);
+            font-size: 2.2rem; width: 100%; outline: none; font-family: inherit;
         }
-        .main-input:focus { border-bottom-color: #eee; }
 
-        /* 内容显示区 */
-        .content-wrap {
-            margin-top: var(--top-height); height: calc(100vh - var(--top-height));
-            padding: 0 60px 40px 60px; overflow-y: auto; scrollbar-width: none;
+        /* 内容区：确保有足够的顶部内边距 */
+        main {
+            padding: calc(var(--header-h) + 40px) 60px 60px 60px;
+            height: 100vh; overflow-y: auto; scrollbar-width: none;
         }
-        .content-wrap::-webkit-scrollbar { display: none; }
+        main::-webkit-scrollbar { display: none; }
 
-        /* 返回按钮 */
-        #exit-btn {
-            position: fixed; top: 40px; right: 60px; z-index: 200;
-            font-size: 11px; color: var(--sub); cursor: pointer; display: none;
-            border: 1px solid var(--border); padding: 8px 16px; border-radius: 4px;
+        #exit {
+            position: fixed; top: 45px; right: 60px; z-index: 1100;
+            font-size: 10px; color: var(--s); cursor: pointer; display: none;
+            border: 1px solid var(--b); padding: 6px 14px; border-radius: 2px;
         }
-        #exit-btn:hover { color: #fff; border-color: #fff; }
+        #exit:hover { color: #fff; border-color: #fff; }
 
-        /* Vocabulary 布局 */
-        .voc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 20px; }
-        .voc-word { font-size: 4rem; font-weight: 700; margin: 0; }
-        .voc-pos { font-style: italic; color: var(--sub); margin-bottom: 20px; }
-        .section { margin-bottom: 30px; }
-        .section-h { font-size: 11px; color: var(--sub); text-transform: uppercase; margin-bottom: 10px; }
-        .section-c { font-size: 1.2rem; line-height: 1.5; color: #ccc; }
+        /* Vocabulary 深度排版 */
+        .v-container { display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px; animation: fadeIn 0.4s ease; }
+        .v-word { font-size: 4rem; font-weight: 700; margin: 0; letter-spacing: -2px; }
+        .v-tag { display: inline-block; padding: 3px 10px; background: #fff; color: #000; font-size: 10px; font-weight: 800; margin: 15px 0; }
+        .v-section { margin-bottom: 40px; }
+        .v-sh { font-size: 10px; color: var(--s); margin-bottom: 12px; border-bottom: 1px solid #1a1a1a; padding-bottom: 5px; }
+        .v-sd { font-size: 1.1rem; line-height: 1.6; color: #ccc; }
+        .v-cn { font-size: 2rem; color: #fff; font-weight: 600; }
 
-        /* Drawing & Calculator */
-        .canvas-container { width: 100%; height: 600px; background: #050505; border: 1px solid var(--border); position: relative; }
+        /* Canvas & Calculator */
+        .box { width: 100%; height: 550px; background: #050505; border: 1px solid var(--b); position: relative; border-radius: 4px; }
         canvas { width: 100%; height: 100%; cursor: crosshair; }
-        .tool-bar { display: flex; gap: 10px; margin-bottom: 15px; }
-        button { background: transparent; border: 1px solid var(--border); color: #fff; padding: 6px 14px; font-size: 11px; cursor: pointer; }
-        button:hover { border-color: #fff; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { background: var(--accent); border: 1px solid var(--b); color: #fff; padding: 8px 16px; font-size: 10px; cursor: pointer; border-radius: 2px; }
+        button:hover { background: #fff; color: #000; }
 
-        /* Calculator */
-        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 320px; }
-        .calc-btn { height: 50px; font-size: 14px; border: 1px solid var(--border); }
-        #calc-res { font-size: 3rem; margin-bottom: 20px; text-align: right; width: 320px; }
+        #c-res { font-size: 3rem; margin-bottom: 20px; text-align: right; border-bottom: 2px solid var(--b); padding-bottom: 10px; font-family: monospace; }
+        .c-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 340px; }
 
-        /* Chat */
-        .msg { margin-bottom: 40px; }
-        .msg-u { text-align: right; color: var(--sub); }
-        .msg-t { font-size: 1.5rem; line-height: 1.4; margin-top: 5px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div id="exit-btn" onclick="goHome()">BACK</div>
+    <div id="exit" onclick="goHome()">[ EXIT_SYSTEM ]</div>
 
-    <div class="header">
-        <div id="mode-label" class="nav-label">COMMAND</div>
-        <input type="text" id="input" class="main-input" placeholder="Type here..." autocomplete="off" autofocus>
-    </div>
+    <header>
+        <div id="status" class="label">COMMAND_INTERFACE</div>
+        <input type="text" id="cmd" placeholder="Type command..." autocomplete="off" autofocus>
+    </header>
 
-    <div id="mount" class="content-wrap">
-        <div class="msg-t" style="color: #444">Welcome. Commands: hello, drawing, vocabulary, chat, calculator, weather.</div>
-    </div>
+    <main id="mount">
+        <div style="color: var(--s); font-size: 12px;">SYSTEM_READY: Waiting for input... (hello, drawing, vocabulary, chat, calculator, timing)</div>
+    </main>
 
     <script>
-        const input = document.getElementById('input');
+        const cmd = document.getElementById('cmd');
         const mount = document.getElementById('mount');
-        const exit = document.getElementById('exit-btn');
-        const modeLabel = document.getElementById('mode-label');
+        const exit = document.getElementById('exit');
+        const status = document.getElementById('status');
 
-        let appState = 'home';
-        let dMode = 'pen';
+        let app = 'home';
+        let drawMode = 'pen';
         let stacks = { main: [], calc: [] };
+        let swInt, trInt;
 
-        input.addEventListener('keypress', (e) => {
+        cmd.onkeypress = (e) => {
             if(e.key === 'Enter') {
-                const val = input.value.trim();
+                const val = cmd.value.trim();
                 const low = val.toLowerCase();
-                if(appState === 'home') {
-                    if(['hello','drawing','vocabulary','chat','calculator','weather'].includes(low)) launch(low);
-                } else if(appState === 'vocabulary') {
+                if(app === 'home') {
+                    const valid = ['hello','drawing','vocabulary','chat','calculator','timing','weather'];
+                    if(valid.includes(low)) {
+                        app = low; status.innerText = `MODE / ${low.toUpperCase()}`;
+                        exit.style.display = 'block'; cmd.value = ''; render(low);
+                    }
+                } else if(app === 'vocabulary') {
                     search(val);
-                } else if(appState === 'chat') {
+                } else if(app === 'chat') {
                     chat(val);
                 }
             }
-        });
-
-        function launch(type) {
-            appState = type;
-            modeLabel.innerText = type.toUpperCase();
-            exit.style.display = 'block';
-            input.value = '';
-            render(type);
-        }
+        };
 
         function goHome() {
-            appState = 'home';
-            modeLabel.innerText = 'COMMAND';
-            exit.style.display = 'none';
-            input.value = '';
-            mount.innerHTML = `<div class="msg-t" style="color: #444">Welcome.</div>`;
-            input.focus();
+            clearInterval(swInt); clearInterval(trInt);
+            app = 'home'; status.innerText = 'COMMAND_INTERFACE'; exit.style.display = 'none';
+            cmd.value = ''; cmd.placeholder = 'Type command...';
+            mount.innerHTML = `<div style="color: var(--s); font-size: 12px;">SYSTEM_RESET_SUCCESSFUL.</div>`;
         }
 
         function render(type) {
             mount.innerHTML = '';
             if(type === 'hello') {
-                mount.innerHTML = `<div><div class="voc-word">Hello.</div><p class="section-c" style="max-width:600px">This is a minimalist workspace. Every tool is focused on one task at a time.</p></div>`;
+                mount.innerHTML = `<div class="v-word">Hello.</div><div class="v-sd" style="margin-top:20px; max-width:600px;">This is your digital sanctuary. Every function is re-engineered for precision and clarity.</div>`;
+            } else if(type === 'vocabulary') {
+                cmd.placeholder = "Enter word to analyze...";
+                mount.innerHTML = `<div id="v-out" style="color: var(--s)">Waiting for word input...</div>`;
             } else if(type === 'drawing') {
                 mount.innerHTML = `
-                    <div class="tool-bar">
-                        <button onclick="dMode='pen'">PEN</button><button onclick="dMode='eraser'">ERASER</button>
-                        <button onclick="undo('main')">UNDO</button><button onclick="clearC('main')">CLEAR</button>
+                    <div class="controls">
+                        <button onclick="drawMode='pen'">PEN</button><button onclick="drawMode='eraser'">ERASER</button>
+                        <button onclick="undo('main')">UNDO</button><button onclick="clearC('main')">CLEAR ALL</button>
                     </div>
-                    <div class="canvas-container"><canvas id="can-main"></canvas></div>`;
+                    <div class="box"><canvas id="can-main"></canvas></div>`;
                 setTimeout(() => initDraw('can-main'), 50);
-            } else if(type === 'vocabulary') {
-                input.placeholder = "Search Word...";
-                mount.innerHTML = `<div id="v-res">Ready.</div>`;
             } else if(type === 'calculator') {
                 mount.innerHTML = `
                     <div style="display:flex; gap:60px;">
                         <div>
-                            <div id="calc-res">0</div>
-                            <div class="calc-grid">
-                                ${['C','/','*','-','7','8','9','+','4','5','6','sqrt','1','2','3','=','0','.'].map(k=>`<button class="calc-btn" onclick="calc('${k}')">${k}</button>`).join('')}
+                            <div id="c-res">0</div>
+                            <div class="c-grid">
+                                ${['C','/','*','-','7','8','9','+','4','5','6','sqrt','1','2','3','=','0','.'].map(k=>`<button style="height:55px; font-size:14px" onclick="calc('${k}')">${k}</button>`).join('')}
                             </div>
                         </div>
-                        <div class="canvas-container" style="width:400px; height:400px;">
-                            <div style="position:absolute; top:10px; right:10px;"><button onclick="clearC('calc')">C</button></div>
-                            <canvas id="can-calc"></canvas>
-                        </div>
+                        <div class="box" style="width:400px; height:400px;"><canvas id="can-calc"></canvas></div>
                     </div>`;
                 setTimeout(() => initDraw('can-calc'), 50);
             } else if(type === 'chat') {
-                mount.innerHTML = `<div id="chat-l"></div>`;
+                mount.innerHTML = `<div id="chat-l" style="display:flex; flex-direction:column; gap:30px;"></div>`;
+            } else if(type === 'timing') {
+                mount.innerHTML = `
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:80px;">
+                        <div><div class="label">Stopwatch</div><div id="sw-v" style="font-size:5rem; font-family:monospace;">00:00.0</div><button onclick="sw('s')">START</button> <button onclick="sw('p')">PAUSE</button></div>
+                        <div><div class="label">Timer</div><div id="tr-v" style="font-size:5rem; font-family:monospace; color:#222;">00:00</div><input type="number" id="tr-i" style="font-size:1rem; width:80px; border-bottom:1px solid #333; margin-bottom:15px;"><br><button onclick="tr('s')">SET TIMER</button></div>
+                    </div>`;
             }
         }
 
-        // --- Vocabulary: 补全解释与内容 ---
-        function search(w) {
-            const out = document.getElementById('v-res');
-            // 内置词库确保加载
-            const lib = {
-                "hello": { en: "A greeting used to express recognition or welcome.", pos: "noun / interjection", cn: "你好 / 问候", syn: ["greeting", "salutation"], ant: ["goodbye"], sent: "She gave a friendly hello to the new neighbor." },
-                "jefferson": { en: "Commonly refers to Thomas Jefferson, the 3rd US President.", pos: "proper noun", cn: "杰斐逊", syn: ["Statesman"], ant: ["N/A"], sent: "Jefferson authored the Declaration of Independence." },
-                "presley": { en: "Refers to Elvis Presley, the King of Rock and Roll.", pos: "proper noun", cn: "普雷斯利", syn: ["Icon"], ant: ["N/A"], sent: "Presley's mansion is called Graceland." }
+        // --- Vocabulary: 修复加载失败与解释缺失 ---
+        async function search(w) {
+            const out = document.getElementById('v-out');
+            out.innerText = "QUERYING_DATABASE...";
+            
+            // 本地高频词库保障
+            const local = {
+                "hello": { en: "A common greeting used to express recognition or welcome.", cn: "你好 / 问候", syn: "greeting, salutation", sent: "She gave a warm hello to the guest.", pos: "interjection" },
+                "jefferson": { en: "Refers to Thomas Jefferson, the 3rd US President and author of the Declaration of Independence.", cn: "杰斐逊", syn: "statesman", sent: "Jefferson founded the University of Virginia.", pos: "proper noun" },
+                "presley": { en: "Elvis Presley, an American singer often referred to as the King of Rock and Roll.", cn: "普雷斯利", syn: "icon, legend", sent: "Presley's music defined an era.", pos: "proper noun" }
             };
 
-            const d = lib[w.toLowerCase()] || { en: "Definition not found in local library.", pos: "unknown", cn: "未找到翻译", syn: ["N/A"], ant: ["N/A"], sent: "N/A" };
-            
+            let data;
+            try {
+                const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${w}`);
+                const d = await r.json();
+                if(d[0]) {
+                    const m = d[0].meanings[0];
+                    data = {
+                        en: m.definitions[0].definition,
+                        pos: m.partOfSpeech,
+                        cn: local[w.toLowerCase()]?.cn || "词义解析中...",
+                        syn: m.synonyms.slice(0,3).join(', ') || "N/A",
+                        sent: m.definitions[0].example || "N/A"
+                    };
+                }
+            } catch(e) {}
+
+            if(!data) data = local[w.toLowerCase()] || { en: "Word not found in remote or local archive.", cn: "未找到词条", syn: "N/A", sent: "N/A", pos: "unknown" };
+
             out.innerHTML = `
-                <div class="voc-grid">
-                    <div>
-                        <h1 class="voc-word">${w}</h1>
-                        <div class="voc-pos">${d.pos}</div>
-                        <div class="section">
-                            <div class="section-h">English Definition</div>
-                            <div class="section-c">${d.en}</div>
+                <div class="v-container">
+                    <div class="v-main">
+                        <div class="v-word">${w}</div>
+                        <div class="v-tag">${data.pos.toUpperCase()}</div>
+                        <div class="v-section">
+                            <div class="v-sh">ENGLISH DEFINITION</div>
+                            <div class="v-sd">${data.en}</div>
                         </div>
-                        <div class="section">
-                            <div class="section-h">Chinese</div>
-                            <div class="section-c" style="font-size: 2rem; color: #fff;">${d.cn}</div>
+                        <div class="v-section">
+                            <div class="v-sh">CHINESE TRANSLATION</div>
+                            <div class="v-cn">${data.cn}</div>
                         </div>
                     </div>
-                    <div style="border-left: 1px solid #111; padding-left: 60px;">
-                        <div class="section">
-                            <div class="section-h">Synonyms / Antonyms</div>
-                            <div class="section-c"><b>Syn:</b> ${d.syn.join(', ')} <br> <b>Ant:</b> ${d.ant.join(', ')}</div>
+                    <div class="v-side" style="border-left: 1px solid #111; padding-left: 40px;">
+                        <div class="v-section">
+                            <div class="v-sh">SYNONYMS</div>
+                            <div class="v-sd">${data.syn}</div>
                         </div>
-                        <div class="section">
-                            <div class="section-h">Usage Example</div>
-                            <div class="section-c" style="font-style: italic;">"${d.sent}"</div>
+                        <div class="v-section">
+                            <div class="v-sh">USAGE EXAMPLE</div>
+                            <div class="v-sd" style="font-style: italic; border-left: 2px solid #222; padding-left: 15px;">"${data.sent}"</div>
                         </div>
                     </div>
                 </div>`;
         }
 
-        // --- Chat: 逻辑严格匹配 ---
+        // --- Chat: 逻辑严格还原 ---
         function chat(v) {
             const l = document.getElementById('chat-l');
             const low = v.toLowerCase().trim();
-            l.innerHTML += `<div class="msg msg-u"><div>You</div><div class="msg-t">${v}</div></div>`;
-            input.value = '';
-            
+            l.innerHTML += `<div style="text-align:right;"><div class="label">YOU</div><div style="font-size:1.5rem;">${v}</div></div>`;
+            cmd.value = '';
             let r = "guess the password";
             if(low === 'jefferson') r = "He is someone loved by Presley";
             else if(low === 'presley') r = "She is not here";
             else if(low === '15') r = "Look at the photos, they will help you";
             else if(low === '16') r = "I like this, give it to me";
             else if(low === 'basketball') r = "Wait until we are both 18, I love you";
-
             setTimeout(() => {
-                l.innerHTML += `<div class="msg"><div>Archive</div><div class="msg-t" style="color:var(--sub)">${r}</div></div>`;
+                l.innerHTML += `<div><div class="label">ARCHIVE</div><div style="font-size:1.5rem; color:var(--s);">${r}</div></div>`;
                 mount.scrollTop = mount.scrollHeight;
             }, 300);
         }
@@ -234,28 +241,36 @@
             c.onmouseup = () => { if(draw) push(); draw=false; };
             c.onmousemove = (e) => {
                 if(!draw) return; const r=c.getBoundingClientRect();
-                ctx.lineWidth = 2; ctx.strokeStyle = (dMode==='eraser'&&id==='can-main')?'#050505':'#fff';
-                ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
+                ctx.lineWidth = 2; ctx.strokeStyle = (drawMode==='eraser'&&id==='can-main')?'#050505':'#fff';
+                ctx.lineCap='round'; ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
             };
             window.undo = (t) => {
-                const s = stacks[t];
-                if(s.length > 1) {
-                    s.pop(); let img = new Image(); img.src = s[s.length-1];
-                    img.onload = () => { ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(img,0,0); };
-                }
+                const s = stacks[t]; if(s.length > 1) { s.pop(); let img = new Image(); img.src = s[s.length-1]; img.onload = () => { ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(img,0,0); }; }
             };
             window.clearC = (t) => { ctx.clearRect(0,0,c.width,c.height); stacks[t]=[]; };
         }
 
-        // --- Calculator ---
+        // --- Calculator & Tools ---
         let cv = "";
         window.calc = (k) => {
-            const r = document.getElementById('calc-res');
+            const r = document.getElementById('c-res');
             if(k==='C') cv="";
-            else if(k==='='){ try{cv=eval(cv.replace('sqrt','Math.sqrt')).toString()}catch{cv="Error"} }
+            else if(k==='='){ try{cv=eval(cv.replace('sqrt','Math.sqrt')).toString()}catch{cv="ERR"} }
             else cv += k;
             r.innerText = cv || "0";
         }
+        let swMs=0;
+        window.sw=(a)=>{
+            const v=document.getElementById('sw-v');
+            if(a==='s'&&!swInt) swInt=setInterval(()=>{swMs+=100; v.innerText=(swMs/1000).toFixed(1)+'s'},100);
+            else {clearInterval(swInt); swInt=null;}
+        };
+        window.tr=(a)=>{
+            const v=document.getElementById('tr-v');
+            let s=(parseInt(document.getElementById('tr-i').value)||0)*60;
+            clearInterval(trInt); v.style.color="#fff";
+            trInt=setInterval(()=>{if(s<=0){clearInterval(trInt); v.style.color="red"; return} s--; v.innerText=`${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`},1000);
+        };
     </script>
 </body>
 </html>
