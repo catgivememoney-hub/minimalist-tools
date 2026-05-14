@@ -3,114 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archive OS v21 // Swiss</title>
+    <title>Archive OS v22 // The Final Opus</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:wght@300;600;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap');
 
         :root {
             --bg: #000;
             --p: #fff;
             --s: #444;
             --border: rgba(255, 255, 255, 0.1);
-            --ease: cubic-bezier(0.65, 0, 0.35, 1);
+            --ease: cubic-bezier(0.19, 1, 0.22, 1);
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--p); font-family: 'Public Sans', sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--p); font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* 全局 UI 控制器 */
-        #ui-frame { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; padding: 50px; }
-        #exit-node { 
-            pointer-events: auto; font-size: 10px; font-weight: 600; letter-spacing: 3px; 
-            color: var(--p); cursor: pointer; opacity: 0; transform: translateY(-10px);
-            transition: 0.6s var(--ease); text-transform: uppercase; 
-            border: 1px solid var(--border); padding: 10px 20px;
+        /* HUD: EXIT 位置锁定在左上角 */
+        #hud { position: fixed; top: 50px; left: 50px; z-index: 1000; pointer-events: none; }
+        #exit-btn { 
+            pointer-events: auto; font-size: 11px; font-weight: 700; letter-spacing: 3px; 
+            color: var(--p); cursor: pointer; opacity: 0; transform: translateY(10px);
+            transition: 0.8s var(--ease); text-transform: uppercase; 
+            border: 1px solid var(--border); padding: 10px 20px; display: inline-block;
         }
-        #exit-node.active { opacity: 1; transform: translateY(0); }
-        #exit-node:hover { background: #fff; color: #000; }
-        #clock-node { position: absolute; bottom: 50px; right: 50px; font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--s); letter-spacing: 2px; }
+        #exit-btn.active { opacity: 1; transform: translateY(0); }
+        #exit-btn:hover { background: #fff; color: #000; border-color: #fff; }
 
-        /* 屏显过渡 */
-        .screen { position: absolute; inset: 0; display: flex; flex-direction: column; transition: 0.8s var(--ease); padding: 120px 80px; }
-        .hidden { opacity: 0; visibility: hidden; clip-path: inset(100% 0 0 0); }
+        /* 屏显逻辑 & 动画 */
+        .screen { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 100px 80px; transition: 1s var(--ease); }
+        .hidden { opacity: 0; transform: translateY(30px); pointer-events: none; filter: blur(10px); }
         
-        #home-screen { justify-content: center; align-items: center; text-align: center; clip-path: inset(0 0 0 0); }
-        #cmd-field { 
-            background: transparent; border: none; color: #fff; padding: 15px 0; 
-            font-size: 2.2rem; font-weight: 900; width: 400px; text-align: center;
-            outline: none; border-bottom: 2px solid var(--border); transition: 0.5s var(--ease);
+        #home-screen { justify-content: center; align-items: center; }
+        #cmd-in { 
+            background: transparent; border: none; color: #fff; padding: 20px 0; 
+            font-size: 2.2rem; font-weight: 900; width: 450px; text-align: center;
+            outline: none; border-bottom: 2px solid var(--border); transition: 0.6s var(--ease);
         }
-        #cmd-field:focus { width: 550px; border-bottom-color: #fff; }
+        #cmd-in:focus { width: 600px; border-bottom-color: #fff; }
 
-        /* 模块排版 */
-        .m-header { margin-bottom: 50px; border-bottom: 1px solid var(--border); padding-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .m-title { font-size: 3rem; font-weight: 900; letter-spacing: -2px; margin: 0; text-transform: uppercase; }
-        .m-label { font-size: 10px; font-weight: 600; letter-spacing: 5px; color: var(--s); text-transform: uppercase; }
+        /* 模块样式 */
+        .app-container { width: 100%; max-width: 1200px; animation: slideUp 1s var(--ease); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 通用按钮 */
-        .btn-set { display: flex; gap: 15px; margin-top: 30px; }
+        .label { font-size: 10px; font-weight: 700; letter-spacing: 5px; color: var(--s); text-transform: uppercase; margin-bottom: 15px; }
+        .title { font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; margin: 0 0 40px 0; line-height: 1; }
+
         button { 
             background: transparent; border: 1px solid #333; color: #fff; 
-            padding: 10px 25px; font-size: 10px; font-weight: 600; letter-spacing: 2px; 
+            padding: 12px 25px; font-size: 10px; font-weight: 700; letter-spacing: 2px; 
             cursor: pointer; transition: 0.3s var(--ease); text-transform: uppercase;
         }
         button:hover { border-color: #fff; background: rgba(255,255,255,0.05); }
-        button.action { background: #fff; color: #000; border-color: #fff; }
+        button.primary { background: #fff; color: #000; border-color: #fff; }
 
-        /* Drawing & Tools */
-        .draw-panel { display: flex; flex-direction: column; height: 100%; }
-        .tool-strip { display: flex; align-items: center; gap: 30px; margin-bottom: 25px; }
-        canvas { background: #000; border: 1px solid var(--border); flex: 1; cursor: crosshair; }
-        input[type=range] { -webkit-appearance: none; background: #222; height: 1px; width: 120px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 10px; width: 10px; background: #fff; cursor: pointer; border-radius: 50%; }
+        /* 功能区：Drawing */
+        .draw-ui { display: flex; flex-direction: column; gap: 20px; }
+        .control-bar { display: flex; align-items: center; gap: 30px; background: #080808; padding: 15px 30px; border: 1px solid var(--border); width: fit-content; }
+        canvas { background: #000; border: 1px solid var(--border); width: 100%; height: 60vh; cursor: crosshair; }
+        input[type=range] { -webkit-appearance: none; background: #222; height: 2px; width: 120px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 10px; width: 10px; background: #fff; cursor: pointer; }
 
-        /* Timing Layout */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 150px; }
-        .v-display { font-size: 5rem; font-weight: 300; font-family: 'IBM Plex Mono'; margin: 20px 0; letter-spacing: -3px; }
-        .v-input { background: transparent; border: none; border-bottom: 2px solid #222; color: #fff; font-size: 1.5rem; font-weight: 600; width: 100px; outline: none; margin-bottom: 20px; }
+        /* 功能区：Timing */
+        .t-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 100px; }
+        .t-display { font-family: 'JetBrains Mono'; font-size: 5.5rem; font-weight: 500; margin: 30px 0; letter-spacing: -4px; }
+        .t-input { background: transparent; border: none; border-bottom: 2px solid #222; color: #fff; font-size: 1.5rem; font-weight: 700; width: 100px; outline: none; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="ui-frame">
-        <div id="exit-node" onclick="closeApp()">Exit / Return</div>
-        <div id="clock-node">00:00:00</div>
+    <div id="hud">
+        <div id="exit-btn" onclick="goHome()">Exit_Back</div>
     </div>
 
     <div id="home-screen" class="screen">
-        <div class="m-label" style="margin-bottom: 20px">Archive System v21</div>
-        <input type="text" id="cmd-field" placeholder="INPUT COMMAND" autocomplete="off" autofocus>
+        <div class="label">System Entry</div>
+        <input type="text" id="cmd-in" placeholder="ENTER COMMAND" autocomplete="off" autofocus>
     </div>
 
     <div id="app-screen" class="screen hidden">
-        <div id="app-mount"></div>
+        <div id="app-mount" class="app-container"></div>
     </div>
 
     <script>
-        const cmdField = document.getElementById('cmd-field');
+        const cmdIn = document.getElementById('cmd-in');
         const mount = document.getElementById('app-mount');
         
-        // 路由逻辑
-        cmdField.addEventListener('keypress', (e) => {
+        cmdIn.addEventListener('keypress', (e) => {
             if(e.key === 'Enter') {
-                const val = cmdField.value.toLowerCase().trim();
+                const val = cmdIn.value.toLowerCase().trim();
                 const apps = ['hello','drawing','timing','chat','vocabulary','weather','calculator'];
-                if(apps.includes(val)) openApp(val);
+                if(apps.includes(val)) launch(val);
             }
         });
 
-        function openApp(type) {
+        function launch(type) {
             document.getElementById('home-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            document.getElementById('exit-node').classList.add('active');
+            document.getElementById('exit-btn').classList.add('active');
             render(type);
         }
 
-        function closeApp() {
+        function goHome() {
             document.getElementById('app-screen').classList.add('hidden');
             document.getElementById('home-screen').classList.remove('hidden');
-            document.getElementById('exit-node').classList.remove('active');
-            cmdField.value = '';
+            document.getElementById('exit-btn').classList.remove('active');
+            cmdIn.value = '';
             clearInterval(swRef); clearInterval(trRef);
         }
 
@@ -118,62 +115,65 @@
             mount.innerHTML = '';
             if(type === 'hello') {
                 mount.innerHTML = `
-                    <div class="m-header"><div class="m-title">Manifesto.</div><div class="m-label">v21.0</div></div>
-                    <p style="font-size:1.1rem; color:#888; max-width:500px; line-height:1.8; font-weight:300">
-                        A workspace designed for the high-end professional. Every pixel is calculated, every tool is essential. 
-                        Subtract the noise to multiply the focus.
+                    <div class="label">Introduction</div>
+                    <div class="title">Pure Focus.</div>
+                    <p style="font-size:1.2rem; color:#888; max-width:600px; line-height:1.8; font-weight:400">
+                        Welcome to a space where distractions don't exist. Every tool is built for clarity and intention. 
+                        Subtract the noise, refine the thought.
                     </p>`;
             } else if(type === 'timing') {
                 mount.innerHTML = `
-                    <div class="m-header"><div class="m-title">Timing.</div><div class="m-label">Dual Engine</div></div>
-                    <div class="grid-2">
+                    <div class="label">Time Engine</div>
+                    <div class="title">Timing.</div>
+                    <div class="t-grid">
                         <div>
-                            <div class="m-label">Stopwatch</div>
-                            <div id="sw-v" class="v-display">00:00.0</div>
-                            <div class="btn-set">
+                            <div class="label" style="color:#444">Stopwatch</div>
+                            <div id="sw-v" class="t-display">00:00.0</div>
+                            <div style="display:flex; gap:10px">
                                 <button onclick="sw('s')">Start</button>
                                 <button onclick="sw('p')">Pause</button>
                                 <button onclick="sw('r')">Reset</button>
                             </div>
                         </div>
-                        <div>
-                            <div class="m-label">Timer</div>
-                            <div id="tr-v" class="v-display" style="opacity:0.2">00:00</div>
-                            <input type="number" id="tr-i" class="v-input" placeholder="MINS">
-                            <div class="btn-set">
-                                <button class="action" onclick="tr()">Run Timer</button>
+                        <div style="border-left: 1px solid #111; padding-left: 100px">
+                            <div class="label" style="color:#444">Countdown</div>
+                            <div id="tr-v" class="t-display" style="color:#111">00:00</div>
+                            <input type="number" id="tr-i" class="t-input" placeholder="MINS">
+                            <div style="display:flex; gap:10px">
+                                <button class="primary" onclick="tr()">Start Timer</button>
                                 <button onclick="trR()">Reset</button>
                             </div>
                         </div>
                     </div>`;
             } else if(type === 'drawing') {
                 mount.innerHTML = `
-                    <div class="draw-panel">
-                        <div class="tool-strip">
+                    <div class="draw-ui">
+                        <div class="control-bar">
                             <button onclick="dMode='pen'">Pen</button>
                             <button onclick="dMode='eraser'">Eraser</button>
-                            <div style="display:flex; align-items:center; gap:15px">
-                                <span style="font-size:9px; color:#555">BRUSH</span>
-                                <input type="range" id="d-s" min="1" max="80" value="2">
+                            <div style="display:flex; align-items:center; gap:15px; border-left: 1px solid #333; padding-left: 20px">
+                                <span style="font-size:9px; letter-spacing:2px; color:#555">BRUSH</span>
+                                <input type="range" id="d-s" min="1" max="100" value="2">
                             </div>
                             <button onclick="dUndo()">Undo</button>
                             <button onclick="dClear()">Clear All</button>
-                            <button class="action" onclick="dSave()">Export PNG</button>
+                            <button class="primary" onclick="dSave()">Export</button>
                         </div>
                         <canvas id="can"></canvas>
                     </div>`;
-                initD();
+                initDrawing();
             } else if(type === 'chat') {
                 mount.innerHTML = `
-                    <div class="m-header"><div class="m-title">Interface.</div><div class="m-label">Neural Log</div></div>
+                    <div class="label">Neural Network</div>
+                    <div class="title">Interface.</div>
                     <div id="chat-l" style="height:50vh; overflow-y:auto; margin-bottom:40px; padding-right:20px"></div>
                     <input type="text" id="chat-i" placeholder="TRANSMIT MESSAGE" style="background:transparent; border:none; border-bottom:1px solid #222; color:#fff; font-size:1.2rem; width:100%; outline:none; padding:15px 0;">`;
-                initC();
+                initChat();
             } else if(type === 'vocabulary') {
                 mount.innerHTML = `
-                    <div class="m-header"><div class="m-title">Lexicon.</div><div class="m-label">Search</div></div>
-                    <input type="text" id="v-i" placeholder="TYPE WORD" style="background:transparent; border:none; border-bottom:1px solid #222; color:#fff; font-size:2.5rem; font-weight:900; width:100%; outline:none;">
-                    <div id="v-o" style="margin-top:50px"></div>`;
+                    <div class="label">Search Dictionary</div>
+                    <input type="text" id="v-i" placeholder="ENTER WORD" style="background:transparent; border:none; border-bottom:2px solid #222; color:#fff; font-size:3rem; font-weight:900; width:100%; outline:none;">
+                    <div id="v-o" style="margin-top:60px"></div>`;
                 const vi = document.getElementById('v-i'); vi.focus();
                 vi.onkeypress = async (e) => {
                     if(e.key === 'Enter') {
@@ -181,18 +181,18 @@
                         const d = await r.json();
                         if(d[0]) {
                             const def = d[0].meanings[0].definitions[0].definition;
-                            document.getElementById('v-o').innerHTML = `<div class="v-display" style="font-size:3rem">${vi.value}</div><p style="color:#666; max-width:600px; line-height:1.6">${def}</p>`;
+                            document.getElementById('v-o').innerHTML = `<div class="title" style="font-size:3rem">${vi.value}</div><p style="color:#888; max-width:700px; font-size:1.3rem; line-height:1.4">${def}</p>`;
                         }
                     }
                 }
             } else if(type === 'weather') {
-                mount.innerHTML = `<div class="m-label">Current / Los Angeles</div><div class="v-display" style="font-size:8rem">22°C</div>`;
+                mount.innerHTML = `<div class="label">Los Angeles // Actual</div><div class="t-display" style="font-size:12rem; margin:0">22°C</div>`;
             } else if(type === 'calculator') {
-                mount.innerHTML = `<div id="c-r" class="v-display" style="text-align:right">0</div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="cE('${k}')" style="padding:20px">${k.replace('Math.','')}</button>`).join('')}</div>`;
+                mount.innerHTML = `<div id="c-r" class="t-display" style="text-align:right">0</div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="cE('${k}')" style="padding:20px">${k.replace('Math.','')}</button>`).join('')}</div>`;
             }
         }
 
-        // --- 功能细节：Timing ---
+        // --- Timing 核心逻辑 ---
         let swMs = 0, swRef = null, trRef = null;
         window.sw = (m) => {
             const v = document.getElementById('sw-v');
@@ -203,21 +203,21 @@
         window.tr = () => {
             clearInterval(trRef);
             let s = (parseInt(document.getElementById('tr-i').value)||0)*60;
-            const v = document.getElementById('tr-v'); v.style.opacity="1";
+            const v = document.getElementById('tr-v'); v.style.color="#fff";
             trRef = setInterval(()=>{
-                if(s<=0){clearInterval(trRef); alert("Session End"); return;}
+                if(s<=0){clearInterval(trRef); v.style.color="red"; return;}
                 s--; v.innerText = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
             },1000);
         };
-        window.trR = () => { clearInterval(trRef); document.getElementById('tr-v').innerText="00:00"; document.getElementById('tr-v').style.opacity="0.2"; };
+        window.trR = () => { clearInterval(trRef); document.getElementById('tr-v').innerText="00:00"; document.getElementById('tr-v').style.color="#111"; };
 
-        // --- 功能细节：Drawing ---
-        function initD() {
+        // --- Drawing 核心逻辑 ---
+        function initDrawing() {
             const c = document.getElementById('can'), ctx = c.getContext('2d');
             c.width = c.offsetWidth; c.height = c.offsetHeight;
             let draw = false, hist = [];
             window.dMode = 'pen';
-            const save = () => { hist.push(c.toDataURL()); if(hist.length>15) hist.shift(); }; save();
+            const save = () => { hist.push(c.toDataURL()); if(hist.length>20) hist.shift(); }; save();
             c.onmousedown = (e) => { draw=true; ctx.beginPath(); const r=c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
             c.onmouseup = () => { if(draw) save(); draw=false; };
             c.onmousemove = (e) => {
@@ -228,20 +228,20 @@
             };
             window.dUndo = () => { if(hist.length>1){ hist.pop(); let i=new Image(); i.src=hist[hist.length-1]; i.onload=()=> {ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0);}} };
             window.dClear = () => { ctx.clearRect(0,0,c.width,c.height); save(); };
-            window.dSave = () => { const a=document.createElement('a'); a.download='draft.png'; a.href=c.toDataURL(); a.click(); };
+            window.dSave = () => { const a=document.createElement('a'); a.download='archive_art.png'; a.href=c.toDataURL(); a.click(); };
         }
 
-        // --- 功能细节：Chat ---
-        function initC() {
+        // --- Chat 核心逻辑 ---
+        function initChat() {
             const i = document.getElementById('chat-i'), l = document.getElementById('chat-l');
             i.onkeypress = (e) => {
                 if(e.key==='Enter' && i.value.trim()){
-                    l.innerHTML += `<div style="margin-bottom:30px"><div class="m-label">Terminal</div><div style="font-size:1.1rem; font-weight:600">${i.value}</div></div>`;
+                    l.innerHTML += `<div style="margin-bottom:30px"><div class="label">Me</div><div style="font-size:1.2rem; font-weight:700">${i.value}</div></div>`;
                     const v = i.value; i.value = '';
                     setTimeout(()=>{
-                        let r = "Response: Data received and archived.";
+                        let r = "Data received. Status stable.";
                         if(v==='Jefferson') r = "I love you Presley";
-                        l.innerHTML += `<div style="margin-bottom:30px; color:#555"><div class="m-label">System</div><div style="font-size:1.1rem">${r}</div></div>`;
+                        l.innerHTML += `<div style="margin-bottom:30px; color:#555"><div class="label">System</div><div style="font-size:1.2rem">${r}</div></div>`;
                         l.scrollTop = l.scrollHeight;
                     },400);
                 }
@@ -250,11 +250,6 @@
 
         let cE_v = "";
         window.cE = (k) => { if(k==='C') cE_v=""; else if(k==='=') cE_v=eval(cE_v).toString(); else cE_v+=k; document.getElementById('c-r').innerText = cE_v || "0"; };
-
-        setInterval(() => {
-            const now = new Date().toLocaleTimeString('en-US', { hour12: false });
-            document.getElementById('clock-node').innerText = now;
-        }, 1000);
     </script>
 </body>
 </html>
