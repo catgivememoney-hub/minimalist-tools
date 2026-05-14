@@ -3,98 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archive v19 // Elite</title>
+    <title>Archive v20 // Elite</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;500;900&family=JetBrains+Mono:wght@400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;600;900&family=JetBrains+Mono:wght@400&display=swap');
 
         :root {
             --bg: #000;
             --p: #fff;
-            --s: #666;
-            --accent: #fff;
-            --ease: cubic-bezier(0.2, 1, 0.2, 1);
+            --s: #555;
+            --ease: cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--p); font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* 全局 HUD */
-        #hud { position: fixed; top: 40px; left: 40px; right: 40px; display: flex; justify-content: space-between; z-index: 1000; pointer-events: none; }
+        /* UI HUD */
+        #hud { position: fixed; top: 40px; left: 40px; right: 40px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; pointer-events: none; }
         #exit-btn { 
-            pointer-events: auto; font-size: 10px; font-weight: 900; letter-spacing: 4px; 
+            pointer-events: auto; font-size: 11px; font-weight: 900; letter-spacing: 4px; 
             color: var(--p); cursor: pointer; opacity: 0; transition: 0.6s var(--ease);
-            text-transform: uppercase; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px;
+            text-transform: uppercase; border: 1px solid rgba(255,255,255,0.15); padding: 10px 20px;
         }
         #exit-btn:hover { background: #fff; color: #000; }
-        #exit-btn.active { opacity: 1; }
-        #la-time { font-family: 'JetBrains Mono'; font-size: 10px; color: var(--s); margin-top: 10px; }
+        #exit-btn.active { opacity: 1; transform: translateX(0); }
+        #la-time { font-family: 'JetBrains Mono'; font-size: 11px; color: var(--s); letter-spacing: 2px; }
 
-        /* 屏显逻辑 */
+        /* Screen States */
         .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; transition: 1s var(--ease); padding: 100px 80px; }
-        .hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
+        .hidden { opacity: 0; transform: scale(1.02) translateY(10px); pointer-events: none; filter: blur(10px); }
         
-        /* 首页专用排版 */
-        #home-screen { justify-content: center; align-items: center; text-align: center; }
-        #cmd-input { 
+        #home-screen { justify-content: center; align-items: center; }
+        #cmd-in { 
             background: transparent; border: none; color: #fff; padding: 20px 0; 
-            font-size: 2.5rem; font-weight: 900; width: 400px; text-align: center;
+            font-size: 2.2rem; font-weight: 900; width: 400px; text-align: center;
             outline: none; border-bottom: 2px solid #222; transition: 0.5s var(--ease);
         }
-        #cmd-input:focus { width: 550px; border-bottom-color: #fff; }
+        #cmd-in:focus { width: 500px; border-bottom-color: #fff; }
 
-        /* 模块排版 */
-        .module-header { margin-bottom: 60px; }
-        .module-title { font-size: 3rem; font-weight: 900; letter-spacing: -2px; margin: 0; text-transform: uppercase; }
-        .module-sub { font-size: 10px; font-weight: 500; letter-spacing: 6px; color: var(--s); text-transform: uppercase; margin-bottom: 10px; }
+        /* Typography */
+        .m-sub { font-size: 11px; font-weight: 600; letter-spacing: 8px; color: var(--s); text-transform: uppercase; margin-bottom: 15px; }
+        .m-title { font-size: 4rem; font-weight: 900; letter-spacing: -3px; margin: 0; text-transform: uppercase; line-height: 1; }
 
-        /* 按钮与交互 */
-        .btn-group { display: flex; gap: 10px; margin-top: 30px; }
+        /* Buttons */
+        .group { display: flex; gap: 10px; margin-top: 30px; }
         button { 
             background: transparent; border: 1px solid #333; color: #fff; 
-            padding: 12px 24px; font-size: 10px; font-weight: 900; letter-spacing: 2px; 
-            cursor: pointer; transition: 0.3s; text-transform: uppercase;
+            padding: 12px 20px; font-size: 10px; font-weight: 900; letter-spacing: 2px; 
+            cursor: pointer; transition: 0.3s var(--ease); text-transform: uppercase;
         }
-        button:hover { border-color: #fff; }
-        button.primary { background: #fff; color: #000; border-color: #fff; }
+        button:hover { border-color: #fff; transform: translateY(-2px); }
+        button.p-btn { background: #fff; color: #000; border-color: #fff; }
 
-        /* Drawing & Tools */
-        .tool-bar { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; background: #111; padding: 10px 20px; width: fit-content; }
-        canvas { background: #000; border: 1px solid #222; width: 100%; height: 60vh; cursor: crosshair; }
-        input[type=range] { -webkit-appearance: none; background: #333; height: 2px; width: 100px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 10px; width: 100px; background: #fff; cursor: pointer; }
+        /* Canvas & Drawing */
+        #d-wrap { display: flex; flex-direction: column; height: 75vh; }
+        .bar { display: flex; align-items: center; gap: 25px; margin-bottom: 30px; background: #080808; padding: 15px 25px; border: 1px solid #111; width: fit-content; }
+        canvas { background: #000; border: 1px solid #222; flex: 1; cursor: crosshair; }
+        input[type=range] { -webkit-appearance: none; background: #222; height: 2px; width: 120px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; background: #fff; cursor: pointer; border-radius: 50%; }
 
         /* Timing Layout */
-        .timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 100px; }
-        .time-val { font-size: 6rem; font-weight: 900; font-family: 'JetBrains Mono'; margin: 20px 0; letter-spacing: -4px; }
-        input.time-in { background: transparent; border: none; border-bottom: 2px solid #222; color: #fff; font-size: 1.5rem; font-weight: 900; width: 100px; outline: none; margin-bottom: 20px; }
+        .t-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 120px; }
+        .t-val { font-size: 7rem; font-weight: 900; font-family: 'JetBrains Mono'; margin: 20px 0; letter-spacing: -6px; }
+        input.t-in { background: transparent; border: none; border-bottom: 3px solid #222; color: #fff; font-size: 2rem; font-weight: 900; width: 120px; outline: none; margin-bottom: 20px; }
     </style>
 </head>
-<body onclick="playSilence()">
+<body onclick="playSfx()">
 
     <div id="hud">
-        <div id="exit-btn" onclick="exit()">Back / Exit</div>
+        <div id="exit-btn" onclick="goHome()">Exit / Archive</div>
         <div id="la-time">LA 00:00:00</div>
     </div>
 
     <div id="home-screen" class="screen">
-        <div class="module-sub">Command Interface</div>
-        <input type="text" id="cmd-input" placeholder="Type command..." autocomplete="off" autofocus>
+        <div class="m-sub">Command Interface</div>
+        <input type="text" id="cmd-in" placeholder="Type..." autocomplete="off" autofocus>
     </div>
 
     <div id="app-screen" class="screen hidden">
-        <div id="app-content"></div>
+        <div id="app-inner"></div>
     </div>
 
     <script>
-        // --- 核心逻辑 ---
-        const cmdInput = document.getElementById('cmd-input');
-        const appContent = document.getElementById('app-content');
+        const cmdIn = document.getElementById('cmd-in');
+        const inner = document.getElementById('app-inner');
         
-        function playSilence() { document.body.onclick = null; }
+        function playSfx() { document.body.onclick = null; }
 
-        cmdInput.addEventListener('keypress', (e) => {
+        cmdIn.addEventListener('keypress', (e) => {
             if(e.key === 'Enter') {
-                const val = cmdInput.value.toLowerCase().trim();
+                const val = cmdIn.value.toLowerCase().trim();
                 const apps = ['hello','drawing','timing','chat','vocabulary','weather','calculator'];
                 if(apps.includes(val)) launch(val);
             }
@@ -107,69 +104,71 @@
             render(type);
         }
 
-        function exit() {
+        function goHome() {
             document.getElementById('app-screen').classList.add('hidden');
             document.getElementById('home-screen').classList.remove('hidden');
             document.getElementById('exit-btn').classList.remove('active');
-            cmdInput.value = '';
+            cmdIn.value = '';
             clearInterval(swInt); clearInterval(trInt);
         }
 
         function render(type) {
-            appContent.innerHTML = '';
+            inner.innerHTML = '';
             if(type === 'hello') {
-                appContent.innerHTML = `
-                    <div class="module-header">
-                        <div class="module-sub">Archive OS v19</div>
-                        <div class="module-title">Sanctuary.</div>
-                    </div>
-                    <p style="font-size:1.2rem; color:#888; max-width:600px; line-height:1.6">
-                        A focused environment for deep thought. All tools are refined to their purest state. 
-                        No distractions. No noise. Only clarity.
+                inner.innerHTML = `
+                    <div class="m-sub">Introduction</div>
+                    <div class="m-title">Elegance in<br>Subtraction.</div>
+                    <p style="font-size:1.4rem; color:#666; max-width:650px; line-height:1.4; margin-top:40px; font-weight:500">
+                        This is a sanctuary for focus. No noise, no clutter—only the essential tools for deep work and creation.
                     </p>`;
             } else if(type === 'timing') {
-                appContent.innerHTML = `
-                    <div class="timer-grid">
+                inner.innerHTML = `
+                    <div class="t-grid">
                         <div>
-                            <div class="module-sub">Stopwatch</div>
-                            <div id="sw-v" class="time-val">00:00</div>
-                            <div class="btn-group">
+                            <div class="m-sub">Stopwatch</div>
+                            <div id="sw-v" class="t-val">00:00</div>
+                            <div class="group">
                                 <button onclick="sw('s')">Start</button>
                                 <button onclick="sw('p')">Stop</button>
                                 <button onclick="sw('r')">Reset</button>
                             </div>
                         </div>
-                        <div>
-                            <div class="module-sub">Timer</div>
-                            <div id="tr-v" class="time-val" style="color:#222">00:00</div>
-                            <input type="number" id="tr-i" class="time-in" placeholder="MINS">
-                            <div class="btn-group">
-                                <button class="primary" onclick="tr()">Set Timer</button>
-                                <button onclick="trReset()">Reset</button>
+                        <div style="border-left: 1px solid #111; padding-left: 80px;">
+                            <div class="m-sub">Timer</div>
+                            <div id="tr-v" class="t-val" style="color:#151515">00:00</div>
+                            <input type="number" id="tr-i" class="t-in" placeholder="MINS">
+                            <div class="group">
+                                <button class="p-btn" onclick="tr()">Set Timer</button>
+                                <button onclick="trR()">Reset</button>
                             </div>
                         </div>
                     </div>`;
             } else if(type === 'drawing') {
-                appContent.innerHTML = `
-                    <div class="tool-bar">
-                        <button onclick="dMode='pen'">Pen</button>
-                        <button onclick="dMode='eraser'">Eraser</button>
-                        <input type="range" id="d-s" min="1" max="100" value="2">
-                        <button onclick="dUndo()">Undo</button>
-                        <button onclick="dClear()">Clear Canvas</button>
-                        <button class="primary" onclick="dSave()">Export</button>
-                    </div>
-                    <canvas id="can"></canvas>`;
+                inner.innerHTML = `
+                    <div id="d-wrap">
+                        <div class="bar">
+                            <button onclick="dMode='pen'">Pen</button>
+                            <button onclick="dMode='eraser'">Eraser</button>
+                            <div style="display:flex; align-items:center; gap:10px; margin:0 15px">
+                                <span style="font-size:9px; font-weight:900; color:#555">SIZE</span>
+                                <input type="range" id="d-s" min="1" max="100" value="2">
+                            </div>
+                            <button onclick="dUndo()">Undo</button>
+                            <button onclick="dClear()">Clear</button>
+                            <button class="p-btn" onclick="dSave()">Export PNG</button>
+                        </div>
+                        <canvas id="can"></canvas>
+                    </div>`;
                 initD();
             } else if(type === 'chat') {
-                appContent.innerHTML = `
-                    <div id="chat-l" style="height:55vh; overflow-y:auto; margin-bottom:40px; border-left:1px solid #111; padding-left:30px"></div>
-                    <input type="text" id="chat-i" placeholder="Message..." style="background:transparent; border:none; border-bottom:1px solid #333; color:#fff; font-size:1.5rem; width:100%; outline:none; padding:10px 0;">`;
+                inner.innerHTML = `
+                    <div id="chat-l" style="height:60vh; overflow-y:auto; margin-bottom:50px; border-left:1px solid #111; padding-left:40px"></div>
+                    <input type="text" id="chat-i" placeholder="Message..." style="background:transparent; border:none; border-bottom:2px solid #222; color:#fff; font-size:1.8rem; width:100%; outline:none; padding:15px 0; font-weight:600">`;
                 initC();
             } else if(type === 'vocabulary') {
-                appContent.innerHTML = `
-                    <input type="text" id="v-i" placeholder="Enter word..." style="background:transparent; border:none; border-bottom:1px solid #333; color:#fff; font-size:3rem; font-weight:900; width:100%; outline:none;">
-                    <div id="v-o" style="margin-top:40px"></div>`;
+                inner.innerHTML = `
+                    <input type="text" id="v-i" placeholder="Enter English Word..." style="background:transparent; border:none; border-bottom:2px solid #222; color:#fff; font-size:3.5rem; font-weight:900; width:100%; outline:none;">
+                    <div id="v-o" style="margin-top:60px"></div>`;
                 const vi = document.getElementById('v-i'); vi.focus();
                 vi.onkeypress = async (e) => {
                     if(e.key === 'Enter') {
@@ -177,18 +176,18 @@
                         const d = await r.json();
                         if(d[0]) {
                             const def = d[0].meanings[0].definitions[0].definition;
-                            document.getElementById('v-o').innerHTML = `<div class="module-title">${vi.value}</div><p style="font-size:1.5rem; color:#888; margin-top:20px">${def}</p>`;
+                            document.getElementById('v-o').innerHTML = `<div class="m-title" style="font-size:6rem">${vi.value}</div><p style="font-size:2rem; color:#666; margin-top:20px; font-weight:600; line-height:1.2">${def}</p>`;
                         }
                     }
                 }
             } else if(type === 'weather') {
-                appContent.innerHTML = `<div class="module-sub">Los Angeles</div><div class="time-val" style="font-size:10rem">22°C</div><button onclick="exit()">Refresh</button>`;
+                inner.innerHTML = `<div class="m-sub">Los Angeles // Current</div><div class="t-val" style="font-size:12rem; letter-spacing:-10px">22°C</div><button onclick="goHome()">Refresh</button>`;
             } else if(type === 'calculator') {
-                appContent.innerHTML = `<div id="c-r" class="time-val" style="text-align:right">0</div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="cE('${k}')">${k.replace('Math.','')}</button>`).join('')}</div>`;
+                inner.innerHTML = `<div id="c-r" class="t-val" style="text-align:right">0</div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px">${['C','/','*','-','7','8','9','+','4','5','6','Math.sqrt','1','2','3','=','0','.','Math.sin','Math.cos'].map(k=>`<button onclick="cE('${k}')" style="padding:25px; font-size:14px">${k.replace('Math.','')}</button>`).join('')}</div>`;
             }
         }
 
-        // --- 功能细节实现 ---
+        // --- Logic Implementations ---
         let swMs = 0, swInt = null, trInt = null;
         window.sw = (m) => {
             if(m==='s' && !swInt) swInt = setInterval(()=>{swMs++; document.getElementById('sw-v').innerText=new Date(swMs*1000).toISOString().substr(14,5)},1000);
@@ -200,41 +199,41 @@
             let s = (parseInt(document.getElementById('tr-i').value)||0)*60;
             const v = document.getElementById('tr-v'); v.style.color="#fff";
             trInt = setInterval(()=>{
-                if(s<=0){clearInterval(trInt); alert("Timer Done"); return;}
+                if(s<=0){clearInterval(trInt); alert("Timer Finished"); return;}
                 s--; v.innerText = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
             },1000);
         };
-        window.trReset = () => { clearInterval(trInt); document.getElementById('tr-v').innerText="00:00"; document.getElementById('tr-v').style.color="#222"; };
+        window.trR = () => { clearInterval(trInt); document.getElementById('tr-v').innerText="00:00"; document.getElementById('tr-v').style.color="#151515"; };
 
         function initD() {
             const c = document.getElementById('can'), ctx = c.getContext('2d');
             c.width = c.offsetWidth; c.height = c.offsetHeight;
-            let drawing = false, h = [];
+            let draw = false, hist = [];
             window.dMode = 'pen';
-            const s = () => { h.push(c.toDataURL()); if(h.length>10) h.shift(); }; s();
-            c.onmousedown = (e) => { drawing=true; ctx.beginPath(); const r=c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
-            c.onmouseup = () => { if(drawing) s(); drawing=false; };
+            const s = () => { hist.push(c.toDataURL()); if(hist.length>20) hist.shift(); }; s();
+            c.onmousedown = (e) => { draw=true; ctx.beginPath(); const r=c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
+            c.onmouseup = () => { if(draw) s(); draw=false; };
             c.onmousemove = (e) => {
-                if(!drawing) return; const r=c.getBoundingClientRect();
+                if(!draw) return; const r=c.getBoundingClientRect();
                 ctx.lineWidth = document.getElementById('d-s').value;
                 ctx.strokeStyle = dMode==='eraser'?'#000':'#fff';
                 ctx.lineCap='round'; ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
             };
-            window.dUndo = () => { if(h.length>1){ h.pop(); let i=new Image(); i.src=h[h.length-1]; i.onload=()=> {ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0);}} };
+            window.dUndo = () => { if(hist.length>1){ hist.pop(); let i=new Image(); i.src=hist[hist.length-1]; i.onload=()=> {ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(i,0,0);}} };
             window.dClear = () => { ctx.clearRect(0,0,c.width,c.height); s(); };
-            window.dSave = () => { const a=document.createElement('a'); a.download='art.png'; a.href=c.toDataURL(); a.click(); };
+            window.dSave = () => { const a=document.createElement('a'); a.download='sketch.png'; a.href=c.toDataURL(); a.click(); };
         }
 
         function initC() {
             const i = document.getElementById('chat-i'), l = document.getElementById('chat-l');
             i.onkeypress = (e) => {
                 if(e.key==='Enter' && i.value.trim()){
-                    l.innerHTML += `<div style="margin-bottom:30px"><div class="module-sub">You</div><div style="font-size:1.5rem; font-weight:900">${i.value}</div></div>`;
+                    l.innerHTML += `<div style="margin-bottom:40px"><div class="m-sub">You</div><div style="font-size:2rem; font-weight:900; line-height:1">${i.value}</div></div>`;
                     const v = i.value; i.value = '';
                     setTimeout(()=>{
-                        let r = "Acknowledged. All systems optimal.";
+                        let r = "Received. All systems operational.";
                         if(v==='Jefferson') r = "I love you Presley";
-                        l.innerHTML += `<div style="margin-bottom:30px; color:#666"><div class="module-sub">AI</div><div style="font-size:1.5rem; font-weight:500">${r}</div></div>`;
+                        l.innerHTML += `<div style="margin-bottom:40px; color:#444"><div class="m-sub">AI</div><div style="font-size:2rem; font-weight:600; line-height:1">${r}</div></div>`;
                         l.scrollTop = l.scrollHeight;
                     },400);
                 }
