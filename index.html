@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archive OS v27 // Absolute Fix</title>
+    <title>Archive OS v28 // Final Stability</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -11,248 +11,240 @@
             --bg: #000;
             --p: #fff;
             --s: #1a1a1a;
-            --sub: #666;
-            --accent: rgba(255, 255, 255, 0.05);
+            --sub: #555;
+            --accent: #fff;
             --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         body, html { 
-            margin: 0; padding: 0; height: 100%; 
+            margin: 0; padding: 0; height: 100vh; 
             background: var(--bg); color: var(--p); 
             font-family: 'Lexend', sans-serif; overflow: hidden; 
         }
 
-        /* HUD */
-        #hud { position: fixed; top: 30px; left: 40px; z-index: 2000; }
+        /* 顶部导航层 */
+        #hud { position: fixed; top: 30px; left: 40px; z-index: 9999; }
         #exit-btn { 
-            font-size: 11px; font-weight: 600; letter-spacing: 2px; color: var(--p);
-            cursor: pointer; opacity: 0; pointer-events: none;
-            transition: 0.6s var(--ease); border: 1px solid var(--accent);
-            padding: 12px 28px; border-radius: 100px; backdrop-filter: blur(20px);
+            font-size: 10px; font-weight: 800; letter-spacing: 2px; color: var(--p);
+            cursor: pointer; display: none; border: 1px solid #333;
+            padding: 8px 20px; border-radius: 100px; backdrop-filter: blur(20px);
         }
-        #exit-btn.active { opacity: 1; pointer-events: auto; }
+        #exit-btn.active { display: block; }
         #exit-btn:hover { background: #fff; color: #000; }
 
-        /* 主容器：解决遮挡的核心 */
-        .screen { 
-            position: absolute; inset: 0; 
-            display: grid; 
-            grid-template-rows: 220px 1fr; /* 第一行留给搜索框，第二行留给内容 */
-            padding: 0 80px 40px 80px; 
-            transition: 1s var(--ease); 
+        /* 核心布局架构 - 防止遮挡 */
+        .master-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 40px 80px;
         }
-        .hidden { opacity: 0; transform: translateY(20px); pointer-events: none; filter: blur(30px); }
-        
-        /* 搜索区域 */
-        .search-zone { display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 40px; }
-        .label-mini { font-size: 10px; color: var(--sub); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 15px; font-weight: 600; }
-        .cmd-line { 
+
+        /* 搜索区域：固定高度，绝不重叠 */
+        .search-area {
+            flex-shrink: 0;
+            padding-top: 40px;
+            margin-bottom: 40px;
+        }
+        .label-mini { font-size: 10px; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
+        .master-input { 
             background: transparent; border: none; color: #fff; 
             font-size: 3.5rem; font-weight: 800; width: 100%;
-            outline: none; border-bottom: 2px solid var(--s); transition: 0.5s;
+            outline: none; border-bottom: 2px solid var(--s); transition: 0.4s;
+            padding-bottom: 10px;
         }
-        .cmd-line:focus { border-bottom-color: #fff; }
+        .master-input:focus { border-bottom-color: #fff; }
 
-        /* 内容滚动区域 */
-        .content-zone { overflow-y: auto; padding-top: 20px; scrollbar-width: none; }
-        .content-zone::-webkit-scrollbar { display: none; }
+        /* 内容挂载区：自动滚动 */
+        #mount {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 40px;
+            scrollbar-width: none;
+        }
+        #mount::-webkit-scrollbar { display: none; }
 
-        /* 模块样式 */
-        .title-hero { font-size: 5rem; font-weight: 800; letter-spacing: -4px; line-height: 0.9; margin-bottom: 20px; }
-        .text-p { font-size: 1.5rem; color: var(--sub); line-height: 1.6; max-width: 700px; }
+        /* 模块排版 */
+        .title-huge { font-size: 5.5rem; font-weight: 800; letter-spacing: -4px; line-height: 0.9; margin: 0 0 20px 0; }
+        .desc-text { font-size: 1.5rem; color: var(--sub); line-height: 1.6; max-width: 800px; font-weight: 300; }
         
         button { 
-            background: var(--accent); border: none; color: #fff; 
-            padding: 12px 24px; font-size: 11px; font-weight: 600; border-radius: 100px;
-            cursor: pointer; transition: 0.3s;
+            background: #111; border: 1px solid #222; color: #fff; 
+            padding: 10px 22px; font-size: 11px; font-weight: 600; border-radius: 50px;
+            cursor: pointer; transition: 0.2s;
         }
         button:hover { background: #fff; color: #000; }
 
-        /* Vocabulary 专用排版 */
-        .voc-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 100px; margin-top: 20px; }
-        .voc-word { font-size: 5.5rem; font-weight: 800; margin-bottom: 10px; }
-        .voc-tag { display: inline-block; padding: 6px 14px; background: #fff; color: #000; border-radius: 6px; font-size: 12px; font-weight: 800; margin-bottom: 20px; }
-        .voc-meta-box { border-left: 1px solid var(--s); padding-left: 60px; }
-        .voc-item { margin-bottom: 40px; }
-        .voc-val { font-size: 1.8rem; font-weight: 600; color: #fff; margin-top: 5px; }
+        /* Vocabulary 结果页布局 */
+        .voc-container { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; animation: slideUp 0.6s var(--ease); }
+        .voc-tag { display: inline-block; padding: 4px 12px; background: #fff; color: #000; border-radius: 5px; font-size: 11px; font-weight: 800; margin-bottom: 20px; }
+        .voc-meta { border-left: 1px solid #1a1a1a; padding-left: 50px; }
+        .voc-label { font-size: 10px; color: var(--sub); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 2px; }
+        .voc-content { font-size: 1.8rem; font-weight: 600; margin-bottom: 35px; color: #eee; }
 
-        /* Canvas 容器 */
-        .canvas-frame { height: 100%; background: #080808; border-radius: 40px; border: 1px solid var(--s); position: relative; min-height: 500px; }
+        /* Canvas & Calculator */
+        .canvas-box { height: 500px; background: #050505; border-radius: 40px; border: 1px solid #1a1a1a; position: relative; width: 100%; }
         canvas { width: 100%; height: 100%; cursor: crosshair; }
 
-        /* Chat */
-        .chat-msg { margin-bottom: 50px; }
-        .chat-msg.user { text-align: right; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div id="hud">
-        <div id="exit-btn" onclick="goHome()">EXIT_SYSTEM</div>
-    </div>
+    <div id="hud"><div id="exit-btn" onclick="goHome()">SYSTEM_EXIT</div></div>
 
-    <div id="main-screen" class="screen">
-        <div class="search-zone">
-            <div id="input-label" class="label-mini">COMMAND_INTERFACE</div>
-            <input type="text" id="master-input" class="cmd-line" placeholder="Type..." autocomplete="off" autofocus>
+    <div class="master-wrapper">
+        <div class="search-area">
+            <div id="mode-label" class="label-mini">COMMAND_INTERFACE</div>
+            <input type="text" id="main-in" class="master-input" placeholder="Enter Command..." autocomplete="off" autofocus>
         </div>
-        <div id="mount" class="content-zone">
-            <div id="init-msg">
-                <div class="title-hero">Archive.</div>
-                <p class="text-p">A workspace of absolute clarity. Start by typing a command.</p>
-            </div>
+
+        <div id="mount">
+            <div class="title-huge">Archive OS.</div>
+            <p class="desc-text">Version 28 Elite. A refined digital sanctuary. Type 'hello' to begin.</p>
         </div>
     </div>
 
     <script>
-        const input = document.getElementById('master-input');
+        const input = document.getElementById('main-in');
         const mount = document.getElementById('mount');
         const exitBtn = document.getElementById('exit-btn');
-        const label = document.getElementById('input-label');
-        
-        let swI, trI, dMode = 'pen';
+        const modeLabel = document.getElementById('mode-label');
+
+        let swInt, trInt, dMode = 'pen';
         let stacks = { main: [], calc: [] };
-        let currentMode = 'home';
+        let appState = 'home';
 
         input.addEventListener('keypress', (e) => {
             if(e.key === 'Enter') {
                 const val = input.value.toLowerCase().trim();
-                if(currentMode === 'home') {
-                    if(['hello','drawing','timing','weather','chat','vocabulary','calculator'].includes(val)) {
-                        launch(val);
-                    }
-                } else if(currentMode === 'vocabulary') {
-                    searchVoc(val);
-                } else if(currentMode === 'chat') {
-                    chatLogic(val);
+                if(appState === 'home') {
+                    if(['hello','drawing','timing','weather','chat','vocabulary','calculator'].includes(val)) launch(val);
+                } else if(appState === 'vocabulary') {
+                    searchWord(val);
+                } else if(appState === 'chat') {
+                    handleChat(val);
                 }
             }
         });
 
         function launch(type) {
-            currentMode = type;
-            label.innerText = `MODE / ${type.toUpperCase()}`;
+            appState = type;
+            modeLabel.innerText = `MODE / ${type.toUpperCase()}`;
             exitBtn.classList.add('active');
             input.value = '';
+            input.placeholder = (type === 'vocabulary') ? "Search word..." : (type === 'chat' ? "Say something..." : "");
             render(type);
         }
 
         function goHome() {
-            clearInterval(swI); clearInterval(trI);
-            currentMode = 'home';
-            label.innerText = `COMMAND_INTERFACE`;
+            clearInterval(swInt); clearInterval(trInt);
+            appState = 'home';
+            modeLabel.innerText = `COMMAND_INTERFACE`;
             exitBtn.classList.remove('active');
             input.value = '';
-            mount.innerHTML = `
-                <div class="title-hero">Archive.</div>
-                <p class="text-p">A workspace of absolute clarity. Start by typing a command.</p>`;
+            input.placeholder = "Enter Command...";
+            mount.innerHTML = `<div class="title-huge">Archive OS.</div><p class="desc-text">Version 28 Elite. A refined digital sanctuary.</p>`;
             input.focus();
         }
 
         function render(type) {
             mount.innerHTML = '';
             if(type === 'hello') {
-                mount.innerHTML = `
-                    <div style="animation: fadeIn 1s ease forwards">
-                        <div class="label-mini">Introduction</div>
-                        <div class="title-hero">System_Manifesto</div>
-                        <p class="text-p">This is a digital archive. We believe in the power of negative space and the beauty of precision. No distraction. No noise. Just the tools you need to create and compute.</p>
-                    </div>`;
+                mount.innerHTML = `<div class="title-huge">Hello.</div><p class="desc-text">Welcome to your workspace. This system is designed for focus, removing every unnecessary element to let your mind breathe.</p>`;
+            } else if(type === 'vocabulary') {
+                mount.innerHTML = `<div id="voc-out" class="desc-text">Ready to analyze language...</div>`;
+            } else if(type === 'chat') {
+                mount.innerHTML = `<div id="chat-flow" style="display:flex; flex-direction:column; gap:40px;"></div>`;
             } else if(type === 'drawing') {
                 mount.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <div class="label-mini">Creative_Canvas</div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items:center;">
+                        <div class="label-mini">Creative Canvas</div>
                         <div style="display:flex; gap:10px;">
                             <button onclick="dMode='pen'">Pen</button><button onclick="dMode='eraser'">Eraser</button>
                             <button onclick="undo('main')">Undo</button><button onclick="clearC('main')">Clear</button>
                         </div>
                     </div>
-                    <div class="canvas-frame"><canvas id="can-main"></canvas></div>`;
-                setTimeout(() => initCanvas('can-main'), 50);
-            } else if(type === 'vocabulary') {
-                input.placeholder = "Type a word to analyze...";
-                mount.innerHTML = `<div id="voc-res" class="text-p" style="color:#333">Waiting for input...</div>`;
+                    <div class="canvas-box"><canvas id="can-main"></canvas></div>`;
+                setTimeout(() => initDraw('can-main'), 50);
             } else if(type === 'calculator') {
                 mount.innerHTML = `
                     <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:60px; height: 100%;">
                         <div>
-                            <div id="c-res" style="font-family:'JetBrains Mono'; font-size:4.5rem; text-align:right; margin-bottom:30px;">0</div>
+                            <div id="c-res" style="font-family:'JetBrains Mono'; font-size:4.5rem; text-align:right; margin-bottom:30px; height:100px;">0</div>
                             <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
-                                ${['C','/','*','-','7','8','9','+','4','5','6','sqrt','1','2','3','=','0','.','sin','cos'].map(k=>`<button onclick="calc('${k}')" style="height:70px; border-radius:20px; font-size:14px">${k}</button>`).join('')}
+                                ${['C','/','*','-','7','8','9','+','4','5','6','sqrt','1','2','3','=','0','.','sin','cos'].map(k=>`<button onclick="calc('${k}')" style="height:70px; border-radius:15px; font-size:14px">${k}</button>`).join('')}
                             </div>
                         </div>
-                        <div class="canvas-frame">
+                        <div class="canvas-box">
                             <div style="position:absolute; top:20px; left:20px; z-index:10; display:flex; gap:10px;">
-                                <button onclick="undo('calc')" style="padding:6px 12px; font-size:9px">Undo</button>
-                                <button onclick="clearC('calc')" style="padding:6px 12px; font-size:9px">Clear</button>
+                                <button onclick="undo('calc')">Undo</button><button onclick="clearC('calc')">Clear</button>
                             </div>
                             <canvas id="can-calc"></canvas>
                         </div>
                     </div>`;
-                setTimeout(() => initCanvas('can-calc'), 50);
-            } else if(type === 'chat') {
-                input.placeholder = "Transmit message...";
-                mount.innerHTML = `<div id="chat-l"></div>`;
-            } else if(type === 'timing') {
-                mount.innerHTML = `
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:100px; margin-top:20px;">
-                        <div><div class="label-mini">Stopwatch</div><div id="sw-v" style="font-family:'JetBrains Mono'; font-size:7rem;">00:00.0</div>
-                        <div style="display:flex; gap:10px;"><button onclick="sw('s')">Start</button><button onclick="sw('p')">Pause</button><button onclick="sw('r')">Reset</button></div></div>
-                        <div style="border-left:1px solid #1a1a1a; padding-left:80px;"><div class="label-mini">Timer</div><div id="tr-v" style="font-family:'JetBrains Mono'; font-size:7rem; color:#222">00:00</div>
-                        <input type="number" id="tr-in" placeholder="MIN" style="background:none; border:none; border-bottom:2px solid #111; color:#fff; font-size:2rem; width:100px; outline:none; margin-bottom:20px;"><br>
-                        <button onclick="tr('s')">Set</button><button onclick="tr('r')">Reset</button></div>
-                    </div>`;
+                setTimeout(() => initDraw('can-calc'), 50);
             } else if(type === 'weather') {
                 mount.innerHTML = `
-                    <div class="title-hero" style="font-size:3rem">Climate_Data</div>
+                    <div class="title-huge" style="font-size:3rem">Climate.</div>
                     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:30px; margin-top:40px;">
-                        <div style="padding:40px; border-radius:35px; background:var(--accent)"><div class="label-mini">Yesterday</div><div class="voc-val" style="font-size:3rem">19°C</div></div>
-                        <div style="padding:40px; border-radius:35px; border:1px solid #fff"><div class="label-mini">Today</div><div id="w-now" class="voc-val" style="font-size:3rem">0°C</div></div>
-                        <div style="padding:40px; border-radius:35px; background:var(--accent)"><div class="label-mini">Tomorrow</div><div class="voc-val" style="font-size:3rem">24°C</div></div>
+                        <div style="padding:40px; border-radius:30px; background:#080808"><div class="label-mini">Yesterday</div><div style="font-size:3rem; font-weight:800;">18°C</div></div>
+                        <div style="padding:40px; border-radius:30px; border:1px solid #fff"><div class="label-mini">Today</div><div id="w-now" style="font-size:3rem; font-weight:800;">0°C</div></div>
+                        <div style="padding:40px; border-radius:30px; background:#080808"><div class="label-mini">Tomorrow</div><div style="font-size:3rem; font-weight:800;">24°C</div></div>
                     </div>`;
-                let t=0; let i=setInterval(()=>{if(t>=22){clearInterval(i)} document.getElementById('w-now').innerText=t+'°C'; t++},30);
+                let t=0; let itv=setInterval(()=>{if(t>=22){clearInterval(itv)} document.getElementById('w-now').innerText=t+'°C'; t++},30);
             }
         }
 
-        // --- Vocabulary 深度逻辑 ---
-        async function searchVoc(word) {
-            const res = document.getElementById('voc-res');
-            res.innerHTML = "Analyzing...";
-            try {
-                const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-                const d = await r.json();
-                const main = d[0].meanings[0];
-                
-                // 本地数据增强（解决API无翻译问题）
-                const dict = {
-                    "hello": {cn: "你好 / 问候", syn: ["greeting", "welcome"], ant: ["goodbye"], sent: "She said hello to the stranger."},
-                    "jefferson": {cn: "杰斐逊 (人名)", syn: ["Statesman"], ant: ["None"], sent: "Jefferson was a primary author of the Declaration."},
-                    "archive": {cn: "档案 / 存档", syn: ["records", "collection"], ant: ["current"], sent: "The document is stored in the archive."},
-                    "presley": {cn: "普雷斯利 (人名)", syn: ["Singer"], ant: ["None"], sent: "Presley is known as the King of Rock."}
-                };
-                const local = dict[word.toLowerCase()] || {cn: "解析中...", syn: main.synonyms.slice(0,2), ant: main.antonyms.slice(0,2), sent: main.definitions[0].example};
+        // --- Vocabulary: 离线+在线双重补全 ---
+        async function searchWord(w) {
+            const out = document.getElementById('voc-out');
+            out.innerHTML = "Processing...";
+            
+            const offline = {
+                "hello": {cn: "你好 / 问候", syn: "greeting, welcome", ant: "goodbye", sent: "He smiled and said hello to everyone.", pos: "noun / interjection"},
+                "jefferson": {cn: "杰斐逊 (美国政治家)", syn: "statesman, founder", ant: "None", sent: "Jefferson believed in the power of education.", pos: "proper noun"},
+                "presley": {cn: "普雷斯利 (猫王)", syn: "singer, icon", ant: "None", sent: "Presley's music changed the world forever.", pos: "proper noun"}
+            };
 
-                res.innerHTML = `
-                    <div class="voc-layout">
-                        <div>
-                            <div class="voc-word">${word}</div>
-                            <div class="voc-tag">${main.partOfSpeech}</div>
-                            <div class="text-p">${main.definitions[0].definition}</div>
-                        </div>
-                        <div class="voc-meta-box">
-                            <div class="voc-item"><div class="label-mini">Chinese Translation</div><div class="voc-val">${local.cn}</div></div>
-                            <div class="voc-item"><div class="label-mini">Syn / Ant</div><div class="voc-val">${local.syn.join(', ') || 'N/A'} / ${local.ant.join(', ') || 'N/A'}</div></div>
-                            <div class="voc-item"><div class="label-mini">Sentence</div><div style="font-style:italic; color:#ccc; line-height:1.4">"${local.sent || 'No example available.'}"</div></div>
-                        </div>
-                    </div>`;
-            } catch(e) { res.innerHTML = "Word not found."; }
+            let data;
+            try {
+                const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${w}`);
+                const d = await r.json();
+                if(d[0]) {
+                    const m = d[0].meanings[0];
+                    data = {
+                        cn: offline[w]?.cn || "翻译检索中...",
+                        syn: m.synonyms.slice(0,2).join(', ') || offline[w]?.syn || "N/A",
+                        ant: m.antonyms.slice(0,2).join(', ') || offline[w]?.ant || "N/A",
+                        sent: m.definitions[0].example || offline[w]?.sent || "Usage example not found.",
+                        pos: m.partOfSpeech
+                    };
+                }
+            } catch(e) {}
+
+            if(!data) data = offline[w] || {cn: "未收录", syn: "N/A", ant: "N/A", sent: "No example.", pos: "unknown"};
+
+            out.innerHTML = `
+                <div class="voc-container">
+                    <div>
+                        <div class="title-huge" style="font-size:4rem">${w}</div>
+                        <div class="voc-tag">${data.pos}</div>
+                        <p class="desc-text" style="color:#fff; font-size:1.6rem">${data.cn}</p>
+                    </div>
+                    <div class="voc-meta">
+                        <div class="voc-label">Synonyms</div><div class="voc-content">${data.syn}</div>
+                        <div class="voc-label">Antonyms</div><div class="voc-content">${data.ant}</div>
+                        <div class="voc-label">Usage Sentence</div><div class="voc-content" style="font-style:italic; font-weight:300">"${data.sent}"</div>
+                    </div>
+                </div>`;
         }
 
-        // --- Chat 深度逻辑 ---
-        function chatLogic(v) {
-            const l = document.getElementById('chat-l');
-            l.innerHTML += `<div class="chat-msg user"><div class="label-mini">You</div><div class="voc-val">${v}</div></div>`;
+        // --- Chat: 逻辑精准修复 ---
+        function handleChat(v) {
+            const flow = document.getElementById('chat-flow');
+            flow.innerHTML += `<div style="text-align:right"><div class="label-mini">You</div><div style="font-size:2rem; font-weight:800">${v}</div></div>`;
             input.value = '';
             setTimeout(() => {
                 let r = "guess the password";
@@ -261,24 +253,24 @@
                 else if(v==='15') r = "Look at the photos, they will help you";
                 else if(v==='16') r = "I like this, give it to me";
                 else if(v==='basketball') r = "Wait until we are both 18, I love you";
-                l.innerHTML += `<div class="chat-msg"><div class="label-mini">Archive</div><div class="voc-val" style="color:var(--sub)">${r}</div></div>`;
+                flow.innerHTML += `<div><div class="label-mini">Archive</div><div style="font-size:2rem; font-weight:800; color:var(--sub)">${r}</div></div>`;
                 mount.scrollTop = mount.scrollHeight;
-            }, 400);
+            }, 300);
         }
 
-        // --- Drawing & Canvas ---
-        function initCanvas(id) {
+        // --- Drawing & Undo System ---
+        function initDraw(id) {
             const c = document.getElementById(id), ctx = c.getContext('2d');
             const box = c.parentElement;
             c.width = box.offsetWidth; c.height = box.offsetHeight;
-            let draw = false;
-            const push = () => { let s=id==='can-main'?stacks.main:stacks.calc; if(s.length>20)s.shift(); s.push(c.toDataURL()); };
+            let drawing = false;
+            const push = () => { let s=id==='can-main'?stacks.main:stacks.calc; if(s.length>25)s.shift(); s.push(c.toDataURL()); };
             push();
-            c.onmousedown = (e) => { draw=true; ctx.beginPath(); const r=c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
-            c.onmouseup = () => { if(draw) push(); draw=false; };
+            c.onmousedown = (e) => { drawing=true; ctx.beginPath(); const r=c.getBoundingClientRect(); ctx.moveTo(e.clientX-r.left, e.clientY-r.top); };
+            c.onmouseup = () => { if(drawing) push(); drawing=false; };
             c.onmousemove = (e) => {
-                if(!draw) return; const r=c.getBoundingClientRect();
-                ctx.lineWidth = 3; ctx.strokeStyle = (dMode==='eraser'&&id==='can-main')?'#080808':'#fff';
+                if(!drawing) return; const r=c.getBoundingClientRect();
+                ctx.lineWidth = 3; ctx.strokeStyle = (dMode==='eraser'&&id==='can-main')?'#050505':'#fff';
                 ctx.lineCap='round'; ctx.lineTo(e.clientX-r.left, e.clientY-r.top); ctx.stroke();
             };
             window.undo = (t) => {
@@ -286,32 +278,17 @@
                 const s = t==='main'?stacks.main:stacks.calc;
                 if(s.length>1) { s.pop(); let img=new Image(); img.src=s[s.length-1]; img.onload=()=>{can.getContext('2d').clearRect(0,0,can.width,can.height); can.getContext('2d').drawImage(img,0,0);}}
             };
-            window.clearC = (t) => { const can=document.getElementById(t==='main'?'can-main':'can-calc'); can.getContext('2d').clearRect(0,0,can.width,can.height); if(t==='main')stacks.main=[]; else stacks.calc=[]; push(); };
+            window.clearC = (t) => { const can=document.getElementById(t==='main'?'can-main':'can-calc'); can.getContext('2d').clearRect(0,0,can.width,can.height); stacks[t==='main'?'main':'calc']=[]; push(); };
         }
 
-        // --- Tools Logic ---
-        let swMs=0;
-        window.sw=(a)=>{
-            const v=document.getElementById('sw-v');
-            if(a==='s'&&!swInt) swInt=setInterval(()=>{swMs+=100; v.innerText=(swMs/1000).toFixed(1)+'s'},100);
-            else if(a==='p'){clearInterval(swInt); swInt=null}
-            else if(a==='r'){clearInterval(swInt); swInt=null; swMs=0; v.innerText="00:00.0"}
-        };
-        window.tr=(a)=>{
-            const v=document.getElementById('tr-v');
-            if(a==='s'){
-                clearInterval(trInt); let s=(parseInt(document.getElementById('tr-in').value)||0)*60;
-                v.style.color="#fff";
-                trInt=setInterval(()=>{if(s<=0){clearInterval(trInt); v.style.color="red"; return} s--; v.innerText=`${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`},1000);
-            } else {clearInterval(trInt); v.innerText="00:00"; v.style.color="#222"}
-        };
-        let cV="";
-        window.calc=(k)=>{
-            const r=document.getElementById('c-res');
-            if(k==='C')cV=""; 
-            else if(k==='='){try{cV=eval(cV.replace(/sqrt/g,'Math.sqrt').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos')).toString()}catch{cV="Error"}} 
-            else cV+=k;
-            r.innerText=cV||"0";
+        // --- Utils: Calculator ---
+        let calcVal = "";
+        window.calc = (k) => {
+            const r = document.getElementById('c-res');
+            if(k==='C') calcVal="";
+            else if(k==='='){ try{calcVal=eval(calcVal.replace(/sqrt/g,'Math.sqrt').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos')).toString()}catch{calcVal="Error"} }
+            else calcVal += k;
+            r.innerText = calcVal || "0";
         }
     </script>
 </body>
